@@ -38,7 +38,7 @@ def doubleWell1D(s):
     '''
     this log likelihood is a double well potential (upside down)
     '''
-    return -2*s**4 + 15*s**2
+    return -2*s**4 + 5*s**2
 
 def bigPoly1D(s):
     '''

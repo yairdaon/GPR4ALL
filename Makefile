@@ -50,6 +50,7 @@ tests:
 	mkdir -p graphics
 	$(PYTHON) Test_Plots.py
 	$(PYTHON) Test_Noise.py	
+	$(PYTHON) Test_Prior.py
 	$(PYTHON) Test_Movie1D.py
 	$(PYTHON) Test_Movie2D.py
 	$(PYTHON) Test_Gaussian.py

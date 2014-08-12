@@ -34,14 +34,14 @@ class Test(unittest.TestCase):
         CFG = cfg.Config()
         
         # set plot bounds
-        #self.M = 1
+        CFG.M = 2
         
         # set prior loglikelihood to exponential
-#         prior = lambda x: -np.linalg.norm(x)
-#         CFG.setPrior(prior)
+        prior = lambda x: -np.linalg.norm(x)**2
+        CFG.setPrior(prior)
         
         # set true LL
-        likelihood = truth.bigPoly1D
+        likelihood = truth.doubleWell1D
         CFG.setLL(likelihood)
         
         # use RW's algorithm
@@ -89,12 +89,11 @@ class Test(unittest.TestCase):
         curve1  = plt.plot(x, f, label = "kriged LL")
         curve2  = plt.plot(x, true, label = "true LL")
         curve3  = plt.plot(x, prior, label = "prior log-likelihood")
-        curve4 =  plt.plot(  self.CFG.X ,    self.CFG.F  , 'bo', label = "sampled points ")
+        plt.plot(  self.CFG.X ,    self.CFG.F  , 'bo', label = "sampled points ")
         
         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         plt.setp( curve2, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )
         plt.setp( curve3, 'linewidth', 1.5, 'color', 'b', 'alpha', .5 )
-        #plt.setp( curve4, 'linewidth', 1.5, 'color', 'b', 'alpha', .5 )
         
         plt.legend(loc=1,prop={'size':7})    
         plt.title("Kriged log likelihood")
@@ -102,18 +101,19 @@ class Test(unittest.TestCase):
         plt.savefig("graphics/Test_Prior: Kriged LL")
         plt.close()
         
-        # scond plot
-        curve5  = plt.plot(x, fExp, label = "exp(kriged LL)")
-        curve6  = plt.plot(x, true, label = "unnormalized density")
-        #curve7  = ax1.plot(x, prior, label = "prior log-likelihood")
+        # second plot
+        curve4  = plt.plot(x, fExp, label = "exp(kriged LL)")
+        curve5  = plt.plot(x, trueExp, label = "(unnormalized) likelihood")
+        curve6  = plt.plot(x, priorExp, label = "exp(prior log-likelihood)")
         curve8 =  plt.plot(  X ,   samplesExp  , 'bo', label = "sampled points ")
         
-        plt.setp( curve5, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
-        plt.setp( curve6, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )
-        plt.setp( curve8, 'linewidth', 1.5, 'color', 'b', 'alpha', .5 )
+        plt.setp( curve4, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
+        plt.setp( curve5, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )        
+        plt.setp( curve6, 'linewidth', 3.0, 'color', 'b', 'alpha', .5 )
         
-        # save
-        plt.savefig("graphics/Test_Density: Kriged LL and resulting density")
+        plt.legend(loc=1,prop={'size':7})    
+        plt.title("Interpolated Likelihood")
+        plt.savefig("graphics/Test_Prior: Interpolated Likelihood")
         plt.close()
 
         
