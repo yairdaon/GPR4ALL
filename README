@@ -1,0 +1,53 @@
+
+This package is intended to do the following ( assumption - calculating EXACT log-likelihood is expensive ):
+1. Get some data set of (location ,  exact log-likelihood) pairs. log-likelihood given up to an additive constant.
+2. Perform gausiian processs regression (a.k.a KRIGING)* to estimate log-likelihood on entire state space.
+3. Sample from the estimated log-likelihood.
+4. Calculate  exact log-likelihood.
+5. Add new (location, exact log-likelihood) pair to data set.
+6. Goto 1 until you've had enough.
+7. Sample from the posterior estimated log-likelihood.
+
+*The algorithm used is either the one is page 257 of [1] ("augmented covariance matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
+
+Start by typing running any of the graphical tests (movie, plots). Then come back here and check these notes before you really delve into the code:
+
+1. Whenever I refer to a "container object", I mean an instance of the class 'Config' in the  'kernel.config' module. Usually an instance is called CFG.
+ 
+2. You have a container object. Sampling from the posterior it defines is done by: 
+newSample = kernel.sampler.sampler( container object )
+
+3. To put data inside the a containetr object use  its 'addPair(x, f)' method.
+
+
+important variables (whose value is stored in a container object):
+-----------------------------------------------------------------
+r - a characteristic length scale, determines the autocovariance of the (presumably) underlying gaussian process.
+See 'kernel.aux' module. 
+Set it using a container's 'setR' method.
+
+M - the size of the box where we "clip" the probability. if |x|_inf > M then P(x) = 0 ( equivalently: log P(x) = -inf ).
+See 'lnprob' method in 'kernel.sampler' module. 
+Set it using a container's 'setM' method.
+
+LL- the TRUE log-likelihood. Set it to whatever procedure you have for calculating log-likelihood.
+See 'sampler' method in 'kernel.sampler' module.
+Set it using a container's 'setLL' method.
+
+addSamplesToDataSet - used when we train the sampler. After we've incorporated samples to data set (with their TRUE log likelihood) we may sample from the posterior.
+See last 'if' clause in 'sampler' method in 'kernel.sampler' module.
+Set it using a container's 'setAddSamplesToDataSet' method.
+
+type - a class that tells you what kind of gaussian process regression algorithm a container is using. In a container object the pointer variable is 'algType'.
+See the 'kernel.type' module.
+Set it using a container's 'setType' method.
+
+
+
+
+
+
+
+
+[1]. Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.
+[2]. Gaussian Processes for Machine Learning, Rasmussen & Williams, 2006.
