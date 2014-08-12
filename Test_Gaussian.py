@@ -65,7 +65,7 @@ class Test(unittest.TestCase):
         # create the sampler
         self.sampler = smp.Sampler ( self.CFG )
         
-        k =  4#5 # ...decide how many initial points we take to resolve the log-likelihood
+        k =  45 # ...decide how many initial points we take to resolve the log-likelihood
         for j in range(0,k): 
             print( "Initial samples " + str(j+1) + " of " + str(k))
             self.sampler.sample() # ... sample, incorporate into data set, repeat k times.
@@ -109,7 +109,7 @@ class Test(unittest.TestCase):
         '''
         
         # take 2000 samples. We DO NOT incorporate these into the data set
-        n =  2#000
+        n =  2000
         
         # allocate memory for the data
         samples = np.zeros(n)
