@@ -6,7 +6,6 @@ Created on Jun 11, 2014
 import unittest
 import numpy as np
 import kernel.aux as aux
-import kernel.config as cfg
 
 class Test(unittest.TestCase):
     '''

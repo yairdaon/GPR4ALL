@@ -55,7 +55,7 @@ class Test(unittest.TestCase):
         # choose to add samples to data set
         self.CFG.setAddSamplesToDataSet( True )
                                                                                                                                       
-       # take three samples
+        # take three samples
         self.sampler.sample()
         self.sampler.sample()
         self.sampler.sample()

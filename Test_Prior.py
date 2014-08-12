@@ -6,20 +6,13 @@ Feel free to write to me about my code!
 '''
 import unittest
 import numpy as np
-import math
-import os
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from matplotlib import cm
-import pylab
-import os.path
-import pickle
 
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-import kernel.type as type
+#import kernel.type as type
 
 
 class Test(unittest.TestCase):
@@ -97,7 +90,6 @@ class Test(unittest.TestCase):
         
         plt.legend(loc=1,prop={'size':7})    
         plt.title("Kriged log likelihood")
-        os.system("mkdir graphics")
         plt.savefig("graphics/Test_Prior: Kriged LL")
         plt.close()
         
@@ -105,7 +97,7 @@ class Test(unittest.TestCase):
         curve4  = plt.plot(x, fExp, label = "exp(kriged LL)")
         curve5  = plt.plot(x, trueExp, label = "(unnormalized) likelihood")
         curve6  = plt.plot(x, priorExp, label = "exp(prior log-likelihood)")
-        curve8 =  plt.plot(  X ,   samplesExp  , 'bo', label = "sampled points ")
+        plt.plot(  X ,   samplesExp  , 'bo', label = "sampled points ")
         
         plt.setp( curve4, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         plt.setp( curve5, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )        

@@ -7,12 +7,11 @@ Feel free to write to me about my code!
 import unittest
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
 import kernel.kriging as kg
 import kernel.config as cfg
 import kernel.truth as truth
-import kernel.type as type
+#import kernel.type as type
 import kernel.point as pt
 
 
@@ -55,7 +54,7 @@ class Test(unittest.TestCase):
         CFG.setMatrices() # ... and with the matrices the kriging procedure uses
         
         # the value of the kriged function "at infinity"
-        limAtInfty, tmp = kg.setGetLimit(CFG)
+        limAtInfty, _ = kg.setGetLimit(CFG)
 
         # calculate the curves for the given input
         for j in range(0,n):    
@@ -81,7 +80,6 @@ class Test(unittest.TestCase):
         
         plt.legend(loc=1,prop={'size':7})    
         plt.title("Kriging with noise using " + CFG.algType.getDescription() )
-        os.system("mkdir graphics")     
         plt.savefig("graphics/Test_Noise: Kriged noisy LL")
         plt.close()
 

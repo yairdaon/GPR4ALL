@@ -7,14 +7,13 @@ Feel free to write to me about my code!
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-import math
 import os
 
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-import kernel.type as type
+#import kernel.type as type
 
 
 class Test(unittest.TestCase):
@@ -33,9 +32,7 @@ class Test(unittest.TestCase):
         '''
         
         # tell the OS to prepare for the movie and the frames
-        os.system("mkdir Data")     
-        os.system("mkdir Data/Movie1DFrames")
-        os.system("mkdir graphics")
+        
         os.system("rm -f Data/Movie1DFrames/*.png")    
         
         # for reproducibility

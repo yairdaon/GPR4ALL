@@ -5,14 +5,13 @@ Created on Jun 14, 2014
 Feel free to write to me about my code!
 '''
 import unittest
-import os
 import numpy as np
 
 import kernel.sampler as smp
 import kernel.config as cfg
-import kernel.type as type
 import kernel.kriging as kg
 import kernel.truth as truth
+#import kernel.type as type
 
 import pylab as P
 import matplotlib.pyplot as plt
@@ -37,9 +36,7 @@ class Test(unittest.TestCase):
         this means putting all required information 
         inside the container object
         '''
-        # create target directory
-        os.system("mkdir graphics")
-
+        
         # set seed for reproducibility
         np.random.seed(89)
         
@@ -91,8 +88,8 @@ class Test(unittest.TestCase):
         
         # do all the plotting here
         curve1  = plt.plot(x, f, label = "kriged value")
-        curve2  = plt.plot( self.CFG.X, self.CFG.F, 'bo', label = "sampled points ")
-        curve3  = plt.plot(x, truth.gaussian1D(x), label = "true log-likelihood")
+        plt.plot( self.CFG.X, self.CFG.F, 'bo', label = "sampled points ")
+        plt.plot(x, truth.gaussian1D(x), label = "true log-likelihood")
         
         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         

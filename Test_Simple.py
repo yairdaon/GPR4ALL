@@ -8,7 +8,6 @@ Feel free to write to me about my code!
 import unittest
 
 import kernel.kriging as kg
-import kernel.aux as aux
 import numpy as np
 import kernel.config as cfg
 
@@ -57,7 +56,7 @@ class Test(unittest.TestCase):
         s = np.array( [0, 0] )
         
         # kriging for this center ...
-        b , c = kg.kriging(s, self.CFG)
+        b , _ = kg.kriging(s, self.CFG)
         
         # ... should be the average of the values (f1,...,f4) at the points
         self.assertTrue(np.allclose( np.array( [0] ) , b ))

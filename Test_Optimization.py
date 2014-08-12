@@ -9,15 +9,11 @@ Feel free to write to me about my code!
 import unittest
 import numpy as np
 import math
-import os
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from matplotlib import cm
 import pylab
 import os.path
 import pickle
 
-import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
@@ -34,15 +30,13 @@ class Test(unittest.TestCase):
         
         # for reproducibility
         np.random.seed(1792) 
-    
-        os.system("mkdir graphics")     
                
         #     Initializations of the container object
         
         CFG = cfg.Config()
         
         # The length scale parameter in the Gaussian process covariance function.
-        r = 1.3
+        r =0.5
         CFG.setR(r) 
             
         # the size of the box outside of which the probability is zero
@@ -63,7 +57,7 @@ class Test(unittest.TestCase):
             CFG.addPair( point, f(point) )
         
         # we use algorithm 2.1 from Rasmussen & Williams book
-        CFG.setType( type.RASMUSSEN_WILLIAMS  )
+        CFG.setType(  type.RASMUSSEN_WILLIAMS  )
         #CFG.setType( type.AUGMENTED_COVARIANCE)
         
         # keep the container in scope so we can use it later
@@ -73,8 +67,7 @@ class Test(unittest.TestCase):
         self.sampler = smp.Sampler( self.CFG )
         
         
-        
-        self.fname = "graphics/roseData.pyc"    
+        self.fname = "Data/roseData.pyc"    
         if not os.path.isfile(self.fname):
             print "Creating data for the Rosenbrock plot..."
                  
@@ -102,7 +95,7 @@ class Test(unittest.TestCase):
         '''
         
         # number of samples
-        ns = 12
+        ns = 99
         
         # number of initial
         ni = len(self.CFG.X)

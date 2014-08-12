@@ -7,18 +7,15 @@ Feel free to write to me about my code!
 
 import unittest
 import numpy as np
-import math
 import os
 
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-import kernel.type as type
+#import kernel.type as type
 
-from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 
 
@@ -40,11 +37,6 @@ class Test(unittest.TestCase):
         np.random.seed(1792) 
         
         # tell the OS to prepare for the movie and the frames
-        os.system("mkdir Data")     
-        os.system("mkdir Data/Movie2DSurfaceFrames")
-        os.system("mkdir Data/Movie2DContourFrames")
-
-        os.system("mkdir graphics")
         os.system("rm -f Data/Movie2DSurfaceFrames/*.png") 
         os.system("rm -f Data/Movie2DContourFrames/*.png")     
     
