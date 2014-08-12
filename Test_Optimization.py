@@ -99,7 +99,7 @@ class Test(unittest.TestCase):
         '''
         
         # number of samples
-        ns = 99
+        ns = 15
         
         # number of initial
         ni = len(self.CFG.X)

@@ -107,14 +107,14 @@ class Test(unittest.TestCase):
         
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  66   
+        nf    =  19   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
         xMin = -self.M
         xMax = self.M
-        zMax = 50
-        zMin = -500
+        zMax = 15
+        zMin = -15
         
         # create the two meshgrids the plotter needs
         a  = np.arange(xMin, xMax, 0.4)
@@ -144,7 +144,7 @@ class Test(unittest.TestCase):
             fig1 = plt.figure( frame*2 )
             ax1 = fig1.add_subplot(111 , projection='3d')
             
-            ax1.plot_wireframe(X, Y, kriged, rstride=10, cstride=10)
+            ax1.plot_wireframe(X, Y, kriged, rstride=5, cstride=5)
             ax1.set_xlim(xMin, xMax)
             ax1.set_ylim(xMin, xMax)
             ax1.set_zlim(zMin, zMax)
@@ -163,13 +163,14 @@ class Test(unittest.TestCase):
             
             # create contour
             fig2 = plt.figure( frame*2 + 1 )
-            ax2 = fig2.add_subplot(111)# , projection='2d')
+            ax2 = fig2.add_subplot(111) 
             
-            cs = ax2.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 25)  ) 
+            cs = ax2.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 3)  ) 
             ax2.clabel(cs, fmt = '%.0f', inline = True) 
             ax2.scatter(xs, ys)
             PlotTitle2 = 'Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
             plt.title( PlotTitle2 )
+            
             # save the plot several times
             for k in range(delay):   
                 FrameFileName1 = "Data/Movie2DSurfaceFrames/Frame" + str(frame*delay + k) + ".png"
