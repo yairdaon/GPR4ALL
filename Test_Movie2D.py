@@ -107,7 +107,7 @@ class Test(unittest.TestCase):
         
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  19   
+        nf    =  89   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
@@ -144,7 +144,7 @@ class Test(unittest.TestCase):
             fig1 = plt.figure( frame*2 )
             ax1 = fig1.add_subplot(111 , projection='3d')
             
-            ax1.plot_wireframe(X, Y, kriged, rstride=5, cstride=5)
+            ax1.plot_wireframe(X, Y, kriged, rstride=1, cstride=1)
             ax1.set_xlim(xMin, xMax)
             ax1.set_ylim(xMin, xMax)
             ax1.set_zlim(zMin, zMax)
