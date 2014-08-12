@@ -1,0 +1,13 @@
+graphics/
+Data/
+*.pyc
+*~
+kernel/tmp.py
+*.png
+*.mpg
+/**/*.png
+/**/*.mpg
+Data/**/*.png
+Data/**/*.mpg
+.pydevproject
+.project
