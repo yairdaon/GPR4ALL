@@ -12,7 +12,7 @@ import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-#import kernel.type as type
+import kernel.type as type
 
 
 class Test(unittest.TestCase):

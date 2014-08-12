@@ -9,14 +9,14 @@ import unittest
 import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
+
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-#import kernel.type as type
-
-import matplotlib.pyplot as plt
-
+import kernel.type as type
 
 
 class Test(unittest.TestCase):
@@ -47,11 +47,11 @@ class Test(unittest.TestCase):
         CFG = cfg.Config()
         
         # The length scale parameter in the Gaussian process covariance function.
-        r = 10
+        r = 2
         CFG.setR(r) 
             
         # the size of the box outside of which the probability is zero
-        self.M = 15
+        self.M = 3
         CFG.setM(self.M)
 
         # we know the true log-likelihood in these points
@@ -61,15 +61,15 @@ class Test(unittest.TestCase):
         
         # the true log-likelihood function
         # CHANGE THIS IF YOU WANT YOUR OWN LOG-LIKELIHOOD!!!        
-        CFG.setLL( truth.norm2D )
+        CFG.setLL( truth.logRosenbrock2D )
         self.f = CFG.LL # the true log-likelihood function 
         
         for point in StartPoints:
             CFG.addPair( point, CFG.LL(point) )
         
         # we use algorithm 2.1 from Rasmussen & Williams book
-        #CFG.setType( type.RASMUSSEN_WILLIAMS  )
-        CFG.setType( type.AUGMENTED_COVARIANCE)
+        CFG.setType( type.RASMUSSEN_WILLIAMS  )
+        #CFG.setType( type.AUGMENTED_COVARIANCE)
         
         # keep the container in scope so we can use it later
         self.sampler = smp.Sampler( CFG )
@@ -107,7 +107,7 @@ class Test(unittest.TestCase):
         
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  42   
+        nf    =  6   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
@@ -142,7 +142,6 @@ class Test(unittest.TestCase):
                                 
             # create surface plot
             fig1 = plt.figure( frame*2 )
-           
             ax1 = fig1.add_subplot(111 , projection='3d')
             
             ax1.plot_wireframe(X, Y, kriged, rstride=10, cstride=10)
@@ -155,7 +154,7 @@ class Test(unittest.TestCase):
             zs = np.ravel( np.transpose( np.array( self.CFG.F ) )    )
             ax1.scatter(xs, ys, zs)
     
-            PlotTitle1 = 'Kriged LL surface. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
+            PlotTitle1 = 'Surface of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
             plt.title( PlotTitle1 )
             #textString = 'using  ' + str(frame ) + ' sampled points' 
             #plt.text( textString)
@@ -164,11 +163,12 @@ class Test(unittest.TestCase):
             
             # create contour
             fig2 = plt.figure( frame*2 + 1 )
-            ax2 = fig2.add_subplot(111) #, projection='2d')
+            ax2 = fig2.add_subplot(111)# , projection='2d')
+            
             cs = ax2.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 25)  ) 
             ax2.clabel(cs, fmt = '%.0f', inline = True) 
             ax2.scatter(xs, ys)
-            PlotTitle2 = 'Kriged LL contours. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
+            PlotTitle2 = 'Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
             plt.title( PlotTitle2 )
             # save the plot several times
             for k in range(delay):   

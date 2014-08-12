@@ -18,6 +18,7 @@ import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
 import kernel.type as type
+import kernel.goal as goal
 
 
 class Test(unittest.TestCase):
@@ -34,6 +35,9 @@ class Test(unittest.TestCase):
         #     Initializations of the container object
         
         CFG = cfg.Config()
+        
+        # our objective is to optimize!!!
+        CFG.setGoal(goal.OPTIMIZATION)
         
         # The length scale parameter in the Gaussian process covariance function.
         r =0.5
@@ -95,7 +99,7 @@ class Test(unittest.TestCase):
         '''
         
         # number of samples
-        ns = 99
+        ns = 9#9
         
         # number of initial
         ni = len(self.CFG.X)

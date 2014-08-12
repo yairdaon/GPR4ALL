@@ -12,6 +12,7 @@ import kriging as kg
 import truth 
 import aux 
 import config as cfg
+import goal
 
 import emcee as mc
 
@@ -79,10 +80,12 @@ class Sampler:
         self.state = np.random.get_state()
     
     
-    def chooseSamplePoint( self ):
+    def choosePointRegression( self ):
             ''' 
             current criterion for evaluating LL is choose position 
             of walker that maximizes  likelihood*variance
+            this might be a good choice criterion when we want to 
+            do INTERPOLATION.
             '''
             
             return self.pos[0,:]
@@ -102,7 +105,15 @@ class Sampler:
                     maxScore = currScore
                 
             return self.pos[ind,:]
-        
+    
+    def choosePointOptimization( self ):
+        '''
+        if we seek to optimize, we choose a point according
+        to the kriged dist and hope that it is closer to the 
+        maximum
+        '''
+        return self.pos[0,:]
+            
     def sample(self):
         '''
         this procedure samples a distribution. this distribution is defined by 
@@ -121,7 +132,10 @@ class Sampler:
         else:
     
             # choose the best point according to some criterion
-            s = self.chooseSamplePoint()
+            if self.CFG.goal == goal.REGRESSION:
+                s = self.choosePointRegression()
+            else: # i.e. if we choose optimization
+                s = self.choosePointOptimization()
             
             # calculate the corresponding log likelihood
             f = np.array( [ self.CFG.LL(s) ] )

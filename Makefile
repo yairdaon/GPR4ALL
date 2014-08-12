@@ -54,6 +54,7 @@ tests:
 	$(PYTHON) Test_Movie1D.py
 	$(PYTHON) Test_Movie2D.py
 	$(PYTHON) Test_Gaussian.py
+	$(PYTHON) Test_Optimization.py
 
 #	Makin tarball
 

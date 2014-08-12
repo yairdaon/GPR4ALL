@@ -12,7 +12,7 @@ import numpy as np
 import kernel.kriging as kg
 import kernel.config as cfg
 import kernel.truth as truth
-#import kernel.type as type
+import kernel.type as type
 
 class Test(unittest.TestCase):
     
@@ -44,9 +44,9 @@ class Test(unittest.TestCase):
         CFG = cfg.Config()
         for v in X: 
             CFG.addPair(v, truth.trueLL(v)) #... with (point, value) pair...
-        #a.setType(type.RASMUSSEN_WILLIAMS) #... with the algorithm we use...
-        #a.setType(type.AUGMENTED_COVARIANCE)
-        #a.setType(type.COVARIANCE)
+        CFG.setType(type.RASMUSSEN_WILLIAMS) #... with the algorithm we use...
+        #CFG.setType(type.AUGMENTED_COVARIANCE)
+        #CFG.setType(type.COVARIANCE)
         r = 1.3
         CFG.setR(r) # ...with the location scale hyper parameter r...
         CFG.setMatrices() # ... and with the matrices the kriging procedure uses

@@ -13,7 +13,7 @@ import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.config as cfg
-#import kernel.type as type
+import kernel.type as type
 
 
 class Test(unittest.TestCase):
@@ -66,9 +66,9 @@ class Test(unittest.TestCase):
             CFG.addPair(point, CFG.LL(point))
             
         # we use algorithm 2.1 from Rasmussen & Williams book
-        #CFG.setType( type.RASMUSSEN_WILLIAMS )
+        CFG.setType( type.RASMUSSEN_WILLIAMS )
         #CFG.setType(type.AUGMENTED_COVARIANCE )
-        CFG.setType( type.COVARIANCE )
+        #CFG.setType( type.COVARIANCE )
         
         # keep the container in scope so we can use it later
         self.CFG = CFG
@@ -115,7 +115,7 @@ class Test(unittest.TestCase):
         
         # The number of evaluations of the true likelihood
         # CHANGE THIS IF YOU WANT A 
-        nf    = 55       
+        nf    = 5      
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( x.shape )

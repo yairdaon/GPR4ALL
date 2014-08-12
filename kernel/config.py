@@ -11,7 +11,7 @@ import aux
 import type
 import truth
 import kriging as kg
-   
+import goal
 
 class Config:   
     '''
@@ -60,6 +60,8 @@ class Config:
         # set prior to decay exponentially
         self.prior = lambda x: -np.inf if aux.infNorm(x)  > self.M else 0.0
 
+        # the default task is regression
+        self.goal = goal.REGRESSION
         
     def quickSetup(self, n):
         '''
@@ -177,7 +179,14 @@ class Config:
             self.algType = algType
             self.matricesReady = False
             self.limitsReady = False
-        
+    
+    def setGoal(self, goal):
+        '''
+        decide on our objective - 
+        optimize or regress
+        '''
+        self.goal = goal   
+         
     def setM(self, M):
         ''' 
         M is the size, in the sup norm, of box weconsider. We set the probability outside the box

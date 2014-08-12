@@ -10,7 +10,7 @@ LL variable of the container.
     
 '''
 import numpy as np
-
+import math
 
 def trueLL(s):
     '''
@@ -60,3 +60,10 @@ def rosenbrock2D(s):
     '''
     return -np.array(     [ (1 - s[0])**2 + 100*(s[1] - s[0]**2)**2  ]  )
     
+
+def logRosenbrock2D(s):
+    
+    '''
+    log of Rosenbrock's function
+    '''
+    return np.log( np.array(  [  (1-s[0])**2  +  100*(s[1]-s[0]**2)**2  ]  ) )

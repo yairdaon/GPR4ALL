@@ -11,7 +11,7 @@ import numpy as np
 import kernel.kriging as kg
 import kernel.config as cfg
 import kernel.truth as truth
-#import kernel.type as type
+import kernel.type as type
 import kernel.point as pt
 
 
