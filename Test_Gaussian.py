@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
         # create the sampler
         sampler = smp.Sampler ( specs )
         
-        k =  4 # ...decide how many initial points we take to resolve the log-likelihood
+        k =  29 # ...decide how many initial points we take to resolve the log-likelihood
         for j in range(0,k): 
             print( "Initial samples " + str(j+1) + " of " + str(k))
             sampler.learn() # ... sample, incorporate into data set, repeat k times.
