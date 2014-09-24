@@ -12,8 +12,8 @@ import os
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
-import kernel.config as cfg
-import kernel.type as type
+import kernel.container as cot
+import kernel.algorithm as alg
 
 
 class Test(unittest.TestCase):
@@ -25,12 +25,8 @@ class Test(unittest.TestCase):
     this unit test creates a movie. run it and see for yourself!!
     '''
 
-
-    def setUp(self):
-        '''
-        this is where most of the setup is done for the movie
-        '''
-        
+    def testMovie1D(self):
+    
         # tell the OS to prepare for the movie and the frames
         
         os.system("rm -f Data/Movie1DFrames/*.png")    
@@ -39,66 +35,18 @@ class Test(unittest.TestCase):
         np.random.seed(1792)    
         
         #     Initializations of the container object
-        CFG = cfg.Config()
-
-        # the true log-likelihood function 
-        CFG.LL =  truth.bigPoly1D
- 
-        # make it remember the state of the PRNG
-        CFG.state = np.random.get_state()
-        
-        # The length scale parameter in the Gaussian process covariance function.
-        r = 1.3
-        CFG.setR(r) 
-            
-        # the size of the box outside of which the probability is zero
-        M = 2.5 
-        CFG.setM(M)
-
+        specs = cot.Container(truth.big_poly_1D, M =2.5)
+        M = specs.M
+    
         # we know the true log-likelihood in these points
         StartPoints = []
-        StartPoints.append( np.array( [ 0 ] )  )#-0.5)*(M/2.0) )
-        StartPoints.append( np.array( [0.5] )  )#-0.5)*(M/2.0) )
-        ##StartPoints.append( np.array( [ -M/2.0 ]))
-        ##StartPoints.append( np.array( [  M/2.0 ]))
+        StartPoints.append( np.array( [ 0 ] )  )
+        StartPoints.append( np.array( [0.5] )  )
         
         for point in StartPoints:
-            CFG.addPair(point, CFG.LL(point))
-            
-        # we use algorithm 2.1 from Rasmussen & Williams book
-        CFG.setType( type.RASMUSSEN_WILLIAMS )
-        #CFG.setType(type.AUGMENTED_COVARIANCE )
-        #CFG.setType( type.COVARIANCE )
+            specs.add_point(point)
         
-        # keep the container in scope so we can use it later
-        self.CFG = CFG
-        self.sampler = smp.Sampler( self.CFG 
-                                    )
-    def tearDown(self):
-        '''
-        after the test was run, create and show the movie.
-        you need two programs installed on your machine so this works:
-        you need ffmpeg to create the movie from the frames python saves 
-        and you need vlc to watch the movie
-        feel free to change these two lines here according to whatever
-        programs you have installed in your system
-        '''
-        # delete previous movie
-        os.system("rm -f graphics/Movie1D.mpg")    
-        
-        # create new movie 
-        os.system("ffmpeg -i Data/Movie1DFrames/Frame%d.png graphics/Movie1D.mpg") 
-        
-        #os.system("vlc Movie1.mpg")     
-
-
-    def testMovie1D(self):
-        
-        # the true log-likelihood function
-        f = self.CFG.LL 
-        
-        # the size of the box outside of which the probability is zero
-        M = self.CFG.M 
+        sampler = smp.Sampler( specs )
         
         # the bounds on the plot axes
         # CHANGE THESE IF STUFF HAPPEN OUTSIDE THE FRAME
@@ -114,8 +62,8 @@ class Test(unittest.TestCase):
         delay = 5
         
         # The number of evaluations of the true likelihood
-        # CHANGE THIS IF YOU WANT A 
-        nf    = 43      
+        # change this if you want a longer\shorter movie
+        nf    = 15      
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( x.shape )
@@ -128,13 +76,13 @@ class Test(unittest.TestCase):
             
             # the current a value of the kriged interpolant "at infinity"
             
-            limAtInfty , tmp= kg.setGetLimit(self.CFG)
+            limAtInfty = kg.set_get_limit(specs)[0]
             
             # create the kriged curve and the limit curve
             for j in range(0,len(x)):
-                kriged[j] = kg.kriging(x[j] ,self.CFG)[0]
+                kriged[j] = kg.kriging(x[j] ,specs)[0]
                 limit[j] = limAtInfty
-                true[j] = f(x[j]) # the real log likelihood
+                true[j] = specs.trueLL(x[j]) # the real log likelihood
             
             # each frame is saved delay times, so we can watch the movie at reasonable speed    
             #for k in range(delay):
@@ -143,7 +91,7 @@ class Test(unittest.TestCase):
             # here we create the plot. nothing too fascinating here.
             curve1  = plt.plot(x, kriged , label = "kriged log-likelihood")
             curve2 =  plt.plot(x, true, label = "true log-likelihood")
-            curve3 =  plt.plot( self.CFG.X, self.CFG.F, 'bo', label = "sampled points ")
+            curve3 =  plt.plot( specs.X, specs.F, 'bo', label = "sampled points ")
             curve4  = plt.plot(x, limit, 'g', label = "kriged value at infinity")
     
             plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
@@ -151,8 +99,9 @@ class Test(unittest.TestCase):
     
             
             plt.axis([xMin, xMax, yMin, yMax])
-            PlotTitle = 'Kriged Log-Likelihood Changes in Time. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
-            plt.title( PlotTitle )
+            plt.title( 'Kriged Log-Likelihood Changes in Time. r = ' + str(specs.r)
+                                         + " Algorithm: " + specs.algType.get_description())
+            
             textString = 'using  ' + str(frame ) + ' sampled points' 
             plt.text(1.0, 1.0, textString)
             plt.legend(loc=1,prop={'size':7})  
@@ -161,13 +110,30 @@ class Test(unittest.TestCase):
                 FrameFileName = "Data/Movie1DFrames/Frame" + str(frame*delay + k) + ".png"
                 plt.savefig(FrameFileName)
                 if (frame*delay + k) % 10 == 0:
-                    print( "saved file " + FrameFileName + ".  " + str(frame*delay + k) +  " / " + str(nf*delay) )
+                    print( "saved file " + FrameFileName + ".  " + str(frame*delay + k) + 
+                                                                 " / " + str(nf*delay) )
                     
             plt.close( frame*delay ) 
   
             # IMPORTANT - we sample from the kriged log-likelihood. this is crucial!!!!
-            self.sampler.sample()
+            sampler.learn()
         
+        
+#         after the test was run, create and show the movie.
+#         you need two programs installed on your machine so this works:
+#         you need ffmpeg to create the movie from the frames python saves 
+#         and you need vlc to watch the movie
+#         feel free to change these two lines here according to whatever
+#         programs you have installed in your system
+       
+        # delete previous movie
+        os.system("rm -f graphics/Movie1D.mpg")    
+        
+        # create new movie 
+        os.system("ffmpeg -i Data/Movie1DFrames/Frame%d.png graphics/Movie1D.mpg") 
+        
+        #os.system("vlc Movie1.mpg")     
+
 
 
 if __name__ == "__main__":

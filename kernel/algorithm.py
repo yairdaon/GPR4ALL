@@ -23,7 +23,7 @@ class Algorithm(object):
         '''
         self._matrixType = typeString
 
-    def getDescription(self):
+    def get_description(self):
         '''
         return the type of algorithm an instance defines
         '''
@@ -31,5 +31,4 @@ class Algorithm(object):
 
 # here are the instances of the above class. 
 AUGMENTED_COVARIANCE = Algorithm( "Aug Cov" ) # Use augmented covariance matrix. Unbiased predictor.
-COVARIANCE           = Algorithm( "Cov Mat" ) # Covariance matrix. Not an unbiased predictor.
 RASMUSSEN_WILLIAMS   = Algorithm( "R&W") # algorithm 2.1 in R&W "gaussian Process for Machine Learning"      

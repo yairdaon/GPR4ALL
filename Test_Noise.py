@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import kernel.kriging as kg
-import kernel.config as cfg
+import kernel.container as cot
 import kernel.truth as truth
-import kernel.type as type
+import kernel.algorithm as alg
 import kernel.point as pt
 
 
@@ -32,35 +32,25 @@ class Test(unittest.TestCase):
 
         # locations where we know the function value
         X = []        
-        x1 =  pt.PointWithError( [ 1.1 ] , 0.12 )
-        x2 =  pt.PointWithError( [ 1.0 ] , 0.52 )
-        x3 =  pt.PointWithError( [ -1.1] , 0.06 )
-        x4 =  pt.PointWithError( [ -3.0] , 0.1 )
-        X.append(x1)
-        X.append(x2)
-        X.append(x3)
-        X.append(x4)
+        X.append(pt.PointWithError( [ 1.1 ] , 0.12 ))
+        X.append(pt.PointWithError( [ 1.0 ] , 0.52 ))
+        X.append(pt.PointWithError( [ -1.1] , 0.06 ))
+        X.append(pt.PointWithError( [ -3.0] , 0.1  ))
+        
 
         # create the container object and populate it...
-        CFG = cfg.Config()
+        specs = cot.Container(truth.sin_1D)
         for v in X: 
-            CFG.addPair(v , truth.trueLL(v) + v.getError()*np.random.randn()  ) #... with (point, value) pair...
-        CFG.setType(type.RASMUSSEN_WILLIAMS) #... with the algorithm we use...
-        #CFG.setType(type.AUGMENTED_COVARIANCE)
-        #CFG.setType(type.COVARIANCE)
-        
-        r = 1.3
-        CFG.setR(r) # ...with the location scale hyper parameter r...
-        CFG.setMatrices() # ... and with the matrices the kriging procedure uses
+            specs.add_pair(v , specs.trueLL(v) + v.get_error()*np.random.randn()  ) #... with (point, value) pair...
         
         # the value of the kriged function "at infinity"
-        limAtInfty, _ = kg.setGetLimit(CFG)
+        limAtInfty, _ = kg.set_get_limit(specs)
 
         # calculate the curves for the given input
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] ,CFG) 
+            v = kg.kriging(x[j] ,specs) 
             f[j] = v[0] # set the interpolant
             upper[j] = v[0] + 1.96*v[1] # set the upper bound
             lower[j] = v[0] - 1.96*v[1] # set lower bound
@@ -71,7 +61,7 @@ class Test(unittest.TestCase):
         curve2  = plt.plot(x, upper, label = "1.96 standard deviations")
         curve3  = plt.plot(x, lower)
         curve4  = plt.plot(x, limit, label = "kriged value at infinity")
-        curve5 =  plt.plot( CFG.X, CFG.F, 'bo', label = "sampled points ")
+        curve5 =  plt.plot( specs.X, specs.F, 'bo', label = "sampled points ")
         
         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         plt.setp( curve2, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )
@@ -79,7 +69,7 @@ class Test(unittest.TestCase):
         plt.setp( curve4, 'linewidth', 1.5, 'color', 'b', 'alpha', .5 )
         
         plt.legend(loc=1,prop={'size':7})    
-        plt.title("Kriging with noise using " + CFG.algType.getDescription() )
+        plt.title("Kriging with noise using " + specs.algType.get_description() )
         plt.savefig("graphics/Test_Noise: Kriged noisy LL")
         plt.close()
 

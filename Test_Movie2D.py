@@ -10,13 +10,12 @@ import numpy as np
 import os
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
-import kernel.config as cfg
-import kernel.type as type
+import kernel.container as cot
+import kernel.algorithm as alg
 
 
 class Test(unittest.TestCase):
@@ -28,9 +27,11 @@ class Test(unittest.TestCase):
     this unit test creates a movie. run it and see for yourself!!
     '''
 
-    def setUp(self):
+    def testMovie2D(self):
         '''
-        this is where most of the setup is done for the movie
+        create a 2D movie, based on the data we put in the container object 
+        in the setUp method sthis method does all the graphics involved
+        since this is a 2D running for lots of points might take a while
         '''
         
         # for reproducibility
@@ -39,82 +40,33 @@ class Test(unittest.TestCase):
         # tell the OS to prepare for the movie and the frames
         os.system("rm -f Data/Movie2DSurfaceFrames/*.png") 
         os.system("rm -f Data/Movie2DContourFrames/*.png")     
-    
-        
         
         #     Initializations of the container object
         
-        CFG = cfg.Config()
+        specs = cot.Container( truth.rosenbrock_2D, M=3 )
+        M = specs.M
         
-        # The length scale parameter in the Gaussian process covariance function.
-        r = 2
-        CFG.setR(r) 
-            
-        # the size of the box outside of which the probability is zero
-        self.M = 3
-        CFG.setM(self.M)
-
         # we know the true log-likelihood in these points
         StartPoints = []
         StartPoints.append( np.array( [ 0 , 0 ] ) )
         StartPoints.append( np.array( [0.5,1.0] ) )
         
-        # the true log-likelihood function
-        # CHANGE THIS IF YOU WANT YOUR OWN LOG-LIKELIHOOD!!!        
-        CFG.setLL( truth.logRosenbrock2D )
-        self.f = CFG.LL # the true log-likelihood function 
-        
         for point in StartPoints:
-            CFG.addPair( point, CFG.LL(point) )
-        
-        # we use algorithm 2.1 from Rasmussen & Williams book
-        CFG.setType( type.RASMUSSEN_WILLIAMS  )
-        #CFG.setType( type.AUGMENTED_COVARIANCE)
-        
+            specs.add_point( point )
+
         # keep the container in scope so we can use it later
-        self.sampler = smp.Sampler( CFG )
-        self.CFG = CFG
-
-        
-    def tearDown(self):
-        '''
-        after the test was run - we create the movie.
-        you need two programs installed on your machine to make this work:
-        you need ffmpeg to create the movie from the frames python saves 
-        and you need vlc to watch the movie
-        feel free to change these two lines here according to whatever
-        programs you have installed in your system
-        '''
-        
-        # delete previous movie
-        os.system("rm -f graphics/Movie2DSurface.mpg")   
-        os.system("rm -f graphics/Movie2DContour.mpg")     
-        
-        # create new movie 
-        os.system("ffmpeg -i Data/Movie2DSurfaceFrames/Frame%d.png graphics/Movie2DSurface.mpg") 
-        os.system("ffmpeg -i Data/Movie2DContourFrames/Frame%d.png graphics/Movie2DContour.mpg") 
-        
-        #play new movie
-        #os.system("vlc Movie2.mpg")     
-
-
-    def testMovie2D(self):
-        '''
-        create a 2D movie, based on the data we put in the container object 
-        in the setUp method this method does all the graphics involved
-        since this is a 2D running for lots of points might take a while
-        '''
-        
+        sampler = smp.Sampler( specs )
+ 
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  89   
+        nf    =  28   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
-        xMin = -self.M
-        xMax = self.M
-        zMax = 15
-        zMin = -15
+        xMin = -M
+        xMax = M
+        zMax = 300
+        zMin = -1000
         
         # create the two meshgrids the plotter needs
         a  = np.arange(xMin, xMax, 0.4)
@@ -138,61 +90,61 @@ class Test(unittest.TestCase):
                 for i in range(len(b)):
                     p[0] = X[j,i]
                     p[1] = Y[j,i]    
-                    kriged[j,i] = kg.kriging( p ,self.CFG )[0]
+                    kriged[j,i] = kg.kriging( p , specs )[0]
                                 
-            # create surface plot
-            fig1 = plt.figure( frame*2 )
-            ax1 = fig1.add_subplot(111 , projection='3d')
-            
-            ax1.plot_wireframe(X, Y, kriged, rstride=1, cstride=1)
-            ax1.set_xlim(xMin, xMax)
-            ax1.set_ylim(xMin, xMax)
-            ax1.set_zlim(zMin, zMax)
-            
-            xs = np.ravel( np.transpose( np.array( self.CFG.X ) )[0] )
-            ys = np.ravel( np.transpose( np.array( self.CFG.X ) )[1] )
-            zs = np.ravel( np.transpose( np.array( self.CFG.F ) )    )
-            ax1.scatter(xs, ys, zs)
-    
-            PlotTitle1 = 'Surface of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
-            plt.title( PlotTitle1 )
-            #textString = 'using  ' + str(frame ) + ' sampled points' 
-            #plt.text( textString)
-            plt.legend(loc=1,prop={'size':7}) 
-            
+#             
+            xs = np.ravel( np.transpose( np.array( specs.X ) )[0] )
+            ys = np.ravel( np.transpose( np.array( specs.X ) )[1] )
             
             # create contour
-            fig2 = plt.figure( frame*2 + 1 )
-            ax2 = fig2.add_subplot(111) 
+            fig = plt.figure( frame )
+            ax = fig.add_subplot(111) 
             
-            cs = ax2.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 3)  ) 
-            ax2.clabel(cs, fmt = '%.0f', inline = True) 
-            ax2.scatter(xs, ys)
-            PlotTitle2 = 'Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(self.CFG.r) + " Algorithm: " + self.CFG.algType.getDescription()
-            plt.title( PlotTitle2 )
+            cs = ax.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 30)  ) 
+            ax.clabel(cs, fmt = '%.0f', inline = True) 
+            ax.scatter(xs, ys)
+            plt.title('Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' 
+                                    + str(specs.r) + " Algorithm: " + specs.algType.get_description())
             
             # save the plot several times
             for k in range(delay):   
-                FrameFileName1 = "Data/Movie2DSurfaceFrames/Frame" + str(frame*delay + k) + ".png"
                 FrameFileName2 = "Data/Movie2DContourFrames/Frame" + str(frame*delay + k) + ".png"
 
-                fig1.savefig(FrameFileName1)
-                fig2.savefig(FrameFileName2)
+                fig.savefig(FrameFileName2)
 
                 if (frame*delay + k) % 10 == 0:
-                    print( "saved " + FrameFileName1 + " and " +FrameFileName2 + ".  " + str(frame*delay + k) +  " / " + str((nf+1)*delay) )
+                    print( "saved " +FrameFileName2 + ".  "
+                            + str(frame*delay + k) +  " / " + str((nf+1)*delay) )
             
-            plt.close( frame*2     )
-            plt.close( frame*2 + 1 )
+#             plt.close( frame*2     )
+            plt.close( frame )
 
             # IMPORTANT - we sample from the kriged log-likelihood. this is crucial!!!!
-            self.sampler.sample() 
+            sampler.learn() 
             
+        
+        
+#         after the test was run - we create the movie.
+#         you need two programs installed on your machine to make this work:
+#         you need ffmpeg to create the movie from the frames python saves 
+#         and you need vlc to watch the movie
+#         feel free to change these two lines here according to whatever
+#         programs you have installed in your system
+#         
+        
+        # delete previous movie
+#         os.system("rm -f graphics/Movie2DSurface.mpg")   
+        os.system("rm -f graphics/Movie2DContour.mpg")     
+        
+        # create new movie 
+#         os.system("ffmpeg -i Data/Movie2DSurfaceFrames/Frame%d.png graphics/Movie2DSurface.mpg") 
+        os.system("ffmpeg -i Data/Movie2DContourFrames/Frame%d.png graphics/Movie2DContour.mpg") 
+        
+        #play new movie
+        #os.system("vlc Movie2.mpg")     
 
 
-   
-
-plt.show()
+            
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -11,51 +11,35 @@ import matplotlib.pyplot as plt
 import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
-import kernel.config as cfg
-import kernel.type as type
+import kernel.container as cot
+import kernel.algorithm as alg
 
 
 class Test(unittest.TestCase):
 
-
-    def setUp(self):
+    def testPrior(self):
         
         # for reproducibility purposes
         np.random.seed( 1243 )
         
         # create the container object
-        CFG = cfg.Config()
-        
-        # set plot bounds
-        CFG.M = 2
+        specs = cot.Container( truth.double_well_1D , M=3)
         
         # set prior loglikelihood to exponential
-        prior = lambda x: -np.linalg.norm(x)**2
-        CFG.setPrior(prior)
-        
-        # set true LL
-        likelihood = truth.doubleWell1D
-        CFG.setLL(likelihood)
-        
-        # use RW's algorithm
-        CFG.setType(type.RASMUSSEN_WILLIAMS)
+        specs.set_prior(   lambda x: -np.linalg.norm(x)**2  )
        
         # quick setup
-        CFG.quickSetup(1)
+        specs.quick_setup(1)
         
         # create sampler...
-        self.sampler = smp.Sampler ( CFG )
-        k =  7 # ...decide how many initial points we take to resolve the log-likelihood
-        for j in range(0,k): 
-            print( "Initial samples " + str(j+1) + " of " + str(k))
-            self.sampler.sample() # ... sample, incorporate into data set, repeat k times.
-            
-        self.CFG = CFG
-     
-    def testPrior(self):
-        
+        sampler = smp.Sampler ( specs )
+        k =  22 # ...decide how many initial points we take to resolve the log-likelihood
+        for j in range(k): 
+            print( "Sample " + str(j+1) + " of " + str(k))
+            sampler.learn() # ... sample, incorporate into data set, repeat k times.
+   
         # allocating memory
-        x = np.arange(-self.CFG.M, self.CFG.M, 0.05)
+        x = np.arange(-specs.M, specs.M, 0.05)
         n = len(x)
         f = np.zeros( n )
         true = np.zeros( n )
@@ -65,24 +49,24 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] , self.CFG) 
+            v = kg.kriging(x[j] , specs) 
             f[j] =  (v[0]) # set the interpolant
-            prior[j] = self.CFG.prior(x[j])   # set the limiting curve
-            true[j]  = self.CFG.LL(   x[j])  
+            prior[j] = specs.prior(x[j])   # set the limiting curve
+            true[j]  = specs.trueLL( x[j])  
         
         #move to normal, non-exponential, scale
         fExp = np.exp(f)
         priorExp = np.exp(prior)
         trueExp = np.exp(true)
-        samplesExp = np.exp(np.asarray( self.CFG.F ))
-        X =  np.asarray( self.CFG.X )
+        samplesExp = np.exp(np.asarray( specs.F ))
+        X =  np.asarray( specs.X )
         
         
         # first plot
         curve1  = plt.plot(x, f, label = "kriged LL")
         curve2  = plt.plot(x, true, label = "true LL")
         curve3  = plt.plot(x, prior, label = "prior log-likelihood")
-        plt.plot(  self.CFG.X ,    self.CFG.F  , 'bo', label = "sampled points ")
+        plt.plot(  specs.X ,    specs.F  , 'bo', label = "sampled points ")
         
         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         plt.setp( curve2, 'linewidth', 1.5, 'color', 'r', 'alpha', .5 )
@@ -107,11 +91,6 @@ class Test(unittest.TestCase):
         plt.title("Interpolated Likelihood")
         plt.savefig("graphics/Test_Prior: Interpolated Likelihood")
         plt.close()
-
-        
-        
-        plt.close()
-
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testPrior']

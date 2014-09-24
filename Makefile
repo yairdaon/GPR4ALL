@@ -3,7 +3,13 @@ SUFFIXES :=
 
 #        Compilers, linkers, compile options, link options, paths 
 
-PYTHON  = python2
+# A word about different pythons. My tests work (for me)
+# with this python (typed sys.version):
+# 2.6.6 (r266:84292, Nov 21 2013, 10:50:32) 
+# [GCC 4.4.7 20120313 (Red Hat 4.4.7-4)]you might need 
+# to choose a different one
+
+PYTHON  = python 
 FFMPEG  = ffmpeg           
 PLAY    = vlc
 
@@ -31,34 +37,47 @@ movie2:
 	
 short:
 	clear
-	$(PYTHON) Test_Sampler.py
+	$(PYTHON) Test_Aux.py
 	$(PYTHON) Test_Solver.py
 	$(PYTHON) Test_Simple.py
 	$(PYTHON) Test_Uniform.py
-	$(PYTHON) Test_Reproducible.py
 	$(PYTHON) Test_Plots.py
 	$(PYTHON) Test_Noise.py
-	
-	
-tests:
-	clear
-	$(PYTHON) Test_Sampler.py
-	$(PYTHON) Test_Solver.py
-	$(PYTHON) Test_Simple.py
-	$(PYTHON) Test_Uniform.py
-	$(PYTHON) Test_Reproducible.py
-	mkdir -p graphics
-	$(PYTHON) Test_Plots.py
-	$(PYTHON) Test_Noise.py	
+	$(PYTHON) Test_Config.py
 	$(PYTHON) Test_Prior.py
+	$(PYTHON) Test_Reproducible.py
+	
+long:
+	clear
+	$(PYTHON) Test_Sampler.py	
 	$(PYTHON) Test_Movie1D.py
 	$(PYTHON) Test_Movie2D.py
 	$(PYTHON) Test_Gaussian.py
 	$(PYTHON) Test_Optimization.py
+	$(PYTHON) Test_Info.py
+	
+	
+tests:
+	clear
+	$(PYTHON) Test_Aux.py
+	$(PYTHON) Test_Solver.py
+	$(PYTHON) Test_Simple.py
+	$(PYTHON) Test_Uniform.py
+	$(PYTHON) Test_Plots.py
+	$(PYTHON) Test_Noise.py
+	$(PYTHON) Test_Config.py		
+	$(PYTHON) Test_Prior.py
+	$(PYTHON) Test_Reproducible.py	
+	$(PYTHON) Test_Info.py	
+	$(PYTHON) Test_Sampler.py	
+	$(PYTHON) Test_Movie1D.py
+	$(PYTHON) Test_Movie2D.py
+	$(PYTHON) Test_Gaussian.py
+	
 
 #	Makin tarball
 
 tarball: $(All_SOURCES)  
-	tar -cvf Krig.tar $(ALL_SOURCES) 
+	tar -cvf GPR4ALL.tar $(ALL_SOURCES) 
 
 

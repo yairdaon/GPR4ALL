@@ -16,45 +16,56 @@ class Test(unittest.TestCase):
     ''' 
 
 
-    def setUp(self):
+    def testTychonoffRando(self):
         ''' 
-        set the entire ingredients needed for the test
+        test the solver we use
         '''
         
         # for reproducibility purposes
         np.random.seed(1792)
         
         # create some random matrix
-        self.A = np.random.rand(50,50)
+        A = np.random.rand(50,50)
         
         # get SVD
-        self.U, self.S, self.V = np.linalg.svd(self.A, full_matrices= True, compute_uv=True)
+        U,  S,  V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
         
         # create three random target vectors
-        self.b1 = np.array( np.random.rand(1,50) )
-        self.b2 = np.array( np.random.rand(50,1) )
-        self.b3 = np.array( np.random.rand(50) )
+        b1 = np.array( np.random.rand(1,50) )
+        b2 = np.array( np.random.rand(50,1) )
+        b3 = np.array( np.random.rand(50) )
         
         # the regularization factor we ususlly use in the solver
-        self.reg = 100*np.finfo(np.float).eps
-        
-
-    def testTychonoff(self):
+        reg = 100*np.finfo(np.float).eps
         
         # solve using our solver
-        x1 = aux.tychonoffSvdSolver( self.U, self.S, self.V, self.b1, self.reg )
-        x2 = aux.tychonoffSvdSolver( self.U, self.S, self.V, self.b2, self.reg )
-        x3 = aux.tychonoffSvdSolver( self.U, self.S, self.V, self.b3, self.reg )
+        x1 = aux.tychonoff_solver( U, S, V, b1, reg )
+        x2 = aux.tychonoff_solver( U, S, V, b2, reg )
+        x3 = aux.tychonoff_solver( U, S, V, b3, reg )
         
         # solve using standard package
-        y1 = np.linalg.solve(self.A, np.ravel(self.b1))
-        y2 = np.linalg.solve(self.A, np.ravel(self.b2))
-        y3 = np.linalg.solve(self.A, np.ravel(self.b3))
+        y1 = np.linalg.solve(A, np.ravel(b1))
+        y2 = np.linalg.solve(A, np.ravel(b2))
+        y3 = np.linalg.solve(A, np.ravel(b3))
         
         # compare solutions
         self.assertTrue(np.allclose(x1, y1))
         self.assertTrue(np.allclose(x2, y2))
         self.assertTrue(np.allclose(x3, y3))
+        
+    def testTychonoffSimple(self):
+        '''
+        check that the solver works for a trivial example
+        '''
+        
+        A = np.array( [[ 1, 2] , [ 3 ,4] ])
+        U,  S,  V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
+        b = np.array([1 , 1])
+        reg = 100*np.finfo(np.float).eps
+
+        svdSol = aux.tychonoff_solver( U, S, V, b, reg )
+        trueSol = np.array([ -1 , 1])
+        self.assertTrue(np.allclose(svdSol, trueSol))
 
 
 if __name__ == "__main__":

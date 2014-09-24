@@ -16,6 +16,9 @@ class PointWithError(np.ndarray):
     Copied from
     http://docs.scipy.org/doc/numpy/user/basics.subclassing.html#basics-subclassing
     there it is found under "Slightly more realisic example"
+    
+    :param error:
+        the variance of the noise in the point
     '''
 
     def __new__(cls, input_array, error=0.0):
@@ -32,14 +35,8 @@ class PointWithError(np.ndarray):
         if obj is None: return
         #self.info = getattr(obj, 'info', None)  # commented by myself   
         
-    def getError(self):
+    def get_error(self):
         return self.error
     
-    def setError(self , error):
-        '''
-        for some reason I feel it should always be a double
-        '''
-        self.error = error + 0.0
-      
       
  

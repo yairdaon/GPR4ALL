@@ -1,52 +1,36 @@
 
-This package is intended to do the following ( assumption - calculating EXACT log-likelihood is expensive ):
-1. Get some data set of (location ,  exact log-likelihood) pairs. log-likelihood given up to an additive constant.
-2. Perform gausiian processs regression (a.k.a KRIGING)* to estimate log-likelihood on entire state space.
+This package is intended to do the following ( assumption - calculating EXACT 
+log-likelihood is expensive ):
+
+1. Get some data set of (location ,  exact log-likelihood) pairs. log-likelihood
+ given up to an additive constant.
+2. Perform gausiian processs regression (a.k.a KRIGING)* to estimate log-likelihood
+ on entire state space.
 3. Sample from the estimated log-likelihood.
 4. Calculate  exact log-likelihood.
 5. Add new (location, exact log-likelihood) pair to data set.
 6. Goto 1 until you've had enough.
 7. Sample from the posterior estimated log-likelihood.
 
-*The algorithm used is either the one is page 257 of [1] ("augmented covariance matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
+*The algorithm used is either the one is page 257 of [1] ("augmented covariance 
+matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
 
-Start by typing running any of the graphical tests (movie, plots). Then come back here and check these notes before you really delve into the code:
+Start by typing running any of the graphical tests (movie, plots). Then come back
+ here and check these notes before you really delve into the code:
 
-1. Whenever I refer to a "container object", I mean an instance of the class 'Config' in the  'kernel.config' module. Usually an instance is called CFG.
+1. Whenever I refer to a "container object", I mean an instance of the class 
+'Container' in the  'kernel.container' module. Usually an instance is called specs,
+ a short for specifications.
  
-2. You have a container object. Sampling from the posterior it defines is done by: 
-newSample = kernel.sampler.sampler( container object )
+2. You have a container object. Sampling from the posterior it defines is done by
+ an instance of Sampler. See the documentation of this class to see what possibilities you have in terms of sampling.
 
-3. To put data inside the a containetr object use  its 'addPair(x, f)' method.
+3. To put data inside the a containetr object use  its 'add_pair(x, f)' method. If you want to add a point with unknown likelihood to the data set in the container, use the add_point( point ) method instead. If you want the sampler to search, find and add a new point on its own, use its learn() method
 
-
-important variables (whose value is stored in a container object):
------------------------------------------------------------------
-r - a characteristic length scale, determines the autocovariance of the (presumably) underlying gaussian process.
-See 'kernel.aux' module. 
-Set it using a container's 'setR' method.
-
-M - the size of the box where we "clip" the probability. if |x|_inf > M then P(x) = 0 ( equivalently: log P(x) = -inf ).
-See 'lnprob' method in 'kernel.sampler' module. 
-Set it using a container's 'setM' method.
-
-LL- the TRUE log-likelihood. Set it to whatever procedure you have for calculating log-likelihood.
-See 'sampler' method in 'kernel.sampler' module.
-Set it using a container's 'setLL' method.
-
-addSamplesToDataSet - used when we train the sampler. After we've incorporated samples to data set (with their TRUE log likelihood) we may sample from the posterior.
-See last 'if' clause in 'sampler' method in 'kernel.sampler' module.
-Set it using a container's 'setAddSamplesToDataSet' method.
-
-type - a class that tells you what kind of gaussian process regression algorithm a container is using. In a container object the pointer variable is 'algType'.
-See the 'kernel.type' module.
-Set it using a container's 'setType' method.
-
-
-
-
-
-
+4. Every container object has a variable M. If you're not careful, you will not 
+be able to take samples with ||x||_{inf} > M. So M needs to fit your needs. You
+can read more in the documentation if you want to set a prior on the log-likelihood
+ or just use the setM( bigNumber ) method of members of class Container.
 
 
 [1]. Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.

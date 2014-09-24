@@ -8,38 +8,50 @@ Feel free to write to me about my code!
 import numpy as np
 import math
 import aux
-import config as cfg
-import type
+import algorithm as alg
 
-def kriging(s, CFG):
+def kriging(s, specs):
     '''
     this is where we decide actually which kriging subroutine we use.
     calling them always has the same syntax, though.
     return the interpolated f
     here this is interpreted as a log-likelihood \ log-probability
+    
+    according to our way of modelling the unknown log-likelihood, we 
+    believe that the log-likelihood at x is a random variable distributed 
+    normally N(kriged, std^2)
+    
+    :param s: location in space for which we want to calculate kriged log-likelihood
+    
+    :param specs: a container object holding all specifications required for the calculation
+    
+    returns:
+    
+    * ``kriged`` -the kriged value, base on the data in the container object.
+    
+    * ``std`` - the variance at the point s.
     '''
     
-    
+    # make sure we are using a valid algorithm
+    assert (specs.algType == alg.AUGMENTED_COVARIANCE or 
+                    specs.algType == alg.RASMUSSEN_WILLIAMS) , "Invalid algorithm type!" 
+
     # make sure the matrices used in the kriging computation are ready    
-    if not CFG.matricesReady:
-        CFG.setMatrices()
+    if not specs.matricesReady:
+        specs.set_matrices()
     
     # choose among the different algorithms
-    if CFG.algType == type.AUGMENTED_COVARIANCE:
-        f, sigSquare =  acmSvdKriging(s, CFG)    
+    if specs.algType == alg.AUGMENTED_COVARIANCE:
+        f, sigSquare =  acm_kriging(s, specs)    
     
-    elif CFG.algType == type.COVARIANCE:
-        f, sigSquare =  cmSvdKriging(s, CFG)    
+    elif specs.algType == alg.RASMUSSEN_WILLIAMS:
+        f, sigSquare =  rw_kriging(s, specs)  
     
-    elif CFG.algType == type.RASMUSSEN_WILLIAMS:
-        f, sigSquare =  rwKriging(s, CFG)  
-    
-    else:
-        print("Error, invalid algorithm type.")  
-
-    return f + CFG.prior(s), math.sqrt( abs(sigSquare) ) 
+    kriged = f + specs.prior(s)
+    std = math.sqrt( max(sigSquare,0) )   
+    return kriged , std 
  
-def acmSvdKriging(s, CFG):
+def acm_kriging(s, specs):
     '''
     do krigin using SVD and tychonoff regularization.
 
@@ -57,15 +69,16 @@ def acmSvdKriging(s, CFG):
     
     function parameters: 
     s - where we want to estimate our function \ process
-    CFG - an object that contains all the data we need for the computation
+    specs - an object that contains all the data we need for the computation
     
-    returns - mean and standard deviation for point s
+    returns - mean and variance for point s
     '''
     # unpack the variables
-    X = CFG.X
-    F = CFG.Fmp # F minus prior 
-    r = CFG.r
-    reg = CFG.reg
+    X = specs.X
+    F = specs.Fmp # F minus prior 
+    r = specs.r
+    reg = specs.reg
+
         
     # number of samples we have.
     n = len(F)
@@ -76,7 +89,7 @@ def acmSvdKriging(s, CFG):
         c[i] = aux.cov(s,X[i],r)
     c[n] =  1.0
     
-    lam = aux.tychonoffSvdSolver(CFG.U , CFG.S , CFG.V ,  c, reg)     # solve!!!
+    lam = aux.tychonoff_solver(specs.U , specs.S , specs.V ,  c, reg)     # solve!!!
     
     m = lam[n]
     lam = lam[0:n]
@@ -92,69 +105,12 @@ def acmSvdKriging(s, CFG):
     
     # we want to know if the variance turns out to be negative!
     if sigmaSquare  < 0 and -sigmaSquare > reg:
-        print("Negative kriged variance. Probably because data points are too close. ")
+        print("Negative kriged variance. Probably because data points are too close.")
         
     return f, sigmaSquare   
 
 
-def cmSvdKriging(s, CFG):
-    '''
-    do krigin using SVD and tychonoff regularization.
-
-    we are looking to solve the following:
-    [     ]   [   ]     [ ]
-    [  C  ] * [lam]  =  [c]
-    [     ]   [   ]     [ ]
-    
-    where:
-    C is a covariance matrix between observations (have n of those)
-    lambda are weights
-    c is the covariance between the given s and the n observations
-    
-    function parameters: 
-    s - where we want to estimate our function \ process
-    CFG - an object that contains all the data we need for the computation
-    
-    returns - mean and standard deviation for point s
-    '''
-    # unpack the variables
-    X = CFG.X
-    F = CFG.Fmp # F minus prior
-    U = CFG.U
-    S = CFG.S
-    V = CFG.V
-    r = CFG.r
-    reg = CFG.reg
-    
-    # number of samples we have.
-    n = len(F)
-    
-    # create the target c:
-    c = np.zeros( n )
-    for i in range(0,n):
-        c[i] = aux.cov(s,X[i],r)
-    
-    b = np.dot(np.transpose(U), c)
-    
-    
-    # solve for lambda 
-    x = b*S/(S*S + reg )
-    lam = np.dot( np.transpose(V) ,  np.transpose(x) )
-    
-    f = np.zeros( len(F[0]) )
-    for i in range(n):
-        f = f + lam[i] * F[i]
-        
-    sigmaSquare =  aux.cov(0,0,r) - np.sum(lam*c[0:n])
-    
-     # we want to know if the variance turns out to be negative!
-    if sigmaSquare  < 0 and -sigmaSquare > reg:
-        print("Negative kriged variance. Probably because data points are too close. ")
-        
-    return f, sigmaSquare   
-
-
-def rwKriging(s, CFG):
+def rw_kriging(s, specs):
     '''
     use algortihm 2.1 from page 19 of the book 
     "Gaussian Processes for Machine Learning" by
@@ -163,16 +119,16 @@ def rwKriging(s, CFG):
     '''
     
     # unpack the variables
-    X = CFG.X
-    y = np.array( CFG.Fmp ) # F minus prior 
+    X = specs.X
+    y = np.array( specs.Fmp ) # F minus prior 
     y = np.ravel(y)
 
     # number of samples we have.
     n = len(X)
     
     # parameters
-    r = CFG.r
-    reg = CFG.reg
+    r = specs.r
+    reg = specs.reg
     
     # create the target c:
     k = np.zeros( n )
@@ -182,41 +138,40 @@ def rwKriging(s, CFG):
     
     
     # solve for lambda 
-    alpha = aux.tychonoffSvdSolver(CFG.U, CFG.S, CFG.V, y, reg)
+    alpha = aux.tychonoff_solver(specs.U, specs.S, specs.V, y, reg)
     
-    f = np.zeros( len(CFG.Fmp[0]) ) # F minus prior
+    f = np.zeros( len(specs.Fmp[0]) ) # F minus prior
     for i in range(n):
         f = f + alpha[i] * k[i]
         
     # solve using our tychonoff solver
-    tmp = aux.tychonoffSvdSolver(CFG.U, CFG.S, CFG.V, k, reg)
+    tmp = aux.tychonoff_solver(specs.U, specs.S, specs.V, k, reg)
     
     sigmaSquare =  aux.cov(0,0,r) - np.sum(k*tmp)
-    if sigmaSquare  < 0 and -sigmaSquare > 10*reg:
+    if sigmaSquare  < 0 and -sigmaSquare > reg:
         print(" negative variance. s= " + str(s) )
+
     return f, sigmaSquare  
 
-
- 
-def setGetLimit(CFG):
+def set_get_limit(specs):
     '''
     Returns the kriged value "at infinity", along with
     the (prior) variance at infinity. Very similar to the 
     above kriging procedures.
     '''
     
-    if not CFG.limitsReady:
+    if not specs.limitsReady:
         
         # if we solve for the augmented covariance matrix
-        if CFG.algType == type.AUGMENTED_COVARIANCE:
+        if specs.algType == alg.AUGMENTED_COVARIANCE:
             
             # prepare for the following calculations
-            if not CFG.matricesReady:
-                CFG.setMatrices()
+            if not specs.matricesReady:
+                specs.setMatrices()
             
             # unpack
-            F = CFG.Fmp # F minus prior
-            S = CFG.S
+            F = specs.Fmp # F minus prior
+            S = specs.S
             n = len(F)
             
             # set target
@@ -224,27 +179,27 @@ def setGetLimit(CFG):
             c[n] =  1.0
             
             # solve for the coefficients just like in kriging
-            lam = aux.tychonoffSvdSolver(CFG.U, CFG.S, CFG.V, c, CFG.reg)
+            lam = aux.tychonoff_solver(specs.U, specs.S, specs.V, c, specs.reg)
             
             # calculate the function value according to these weights
             lim = np.zeros( len(F[0]) )
             for i in range(n):
                 lim = lim + lam[i] * F[i] 
             
-            CFG.varAtInf = aux.cov(0,0,CFG.r) + lam[n]
-            CFG.lim = lim
+            specs.varAtInf = aux.cov(0,0,specs.r) + lam[n]
+            specs.lim = lim
             
         
         # if we use algorithm 2.1 (page 19) from Rasmussen & Williams' book
-        # title "Gaussian Processes for Machine Learning" or just solve for the
+        # title "Gaussian Processes for Machine Learning" we solve for the
         # not augmented covariance matrix   
-        if CFG.algType == type.RASMUSSEN_WILLIAMS or CFG.algType == type.COVARIANCE:
+        if specs.algType == alg.RASMUSSEN_WILLIAMS:
             
             # the variance at infinity
-            CFG.varAtInf = aux.cov(0,0,CFG.r)
-            CFG.lim = 0.0
+            specs.varAtInf = aux.cov(0,0,specs.r)
+            specs.lim = 0.0
         
         # we've set the limits, so they're ready
-        CFG.limitsReady = True
+        specs.limitsReady = True
         
-    return CFG.lim , CFG.varAtInf
+    return specs.lim , specs.varAtInf

@@ -10,50 +10,41 @@ LL variable of the container.
     
 '''
 import numpy as np
-import math
-
-def trueLL(s):
-    '''
-    decide on the default log likelihood. you may also change 
-    this if you want to use your own log-likelihood. in that case,
-    don't tell the container - trueLL is the default log-likelihood
-    '''
-    return sin1D(s)
-
 
 # Some log likelihoods the tests use
-def sin1D(s):
+
+def sin_1D(s):
     '''
     a wiggly sine log likelihood
     '''    
     return np.sin(3*s)
     
-def gaussian1D(s):
+def gaussian_1D(s):
     '''
     the log likelihood of a 1D standard Gaussian
     '''
     return -s*s/2.0
 
-def doubleWell1D(s):
+def double_well_1D(s):
     '''
     this log likelihood is a double well potential (upside down)
     '''
     return -2*s**4 + 5*s**2
 
-def bigPoly1D(s):
+def big_poly_1D(s):
     '''
     the following polynomial
     '''
     return -(s**6  + 3.5*s**4  - 2.5*s**3 - 12.5*s**2 + 1.5*s )
     
-def norm2D(s):
+def norm_2D(s):
     '''
     some 2D log likelihood function
     '''
     t = np.linalg.norm(s)
     return -np.array( [t*t] )
 
-def rosenbrock2D(s):
+def rosenbrock_2D(s):
     '''
     the (negative of the) 2D Rosenbrock function. google it if you've never
     heard of it.
@@ -61,9 +52,23 @@ def rosenbrock2D(s):
     return -np.array(     [ (1 - s[0])**2 + 100*(s[1] - s[0]**2)**2  ]  )
     
 
-def logRosenbrock2D(s):
+def log_rosenbrock_2D(s):
     
     '''
     log of Rosenbrock's function
     '''
     return np.log( np.array(  [  (1-s[0])**2  +  100*(s[1]-s[0]**2)**2  ]  ) )
+
+def zero(s):
+    '''
+    identically zero, used when the LL 
+    is of no importance
+    '''
+    return np.array([0])
+
+def const(s):
+    '''
+    identically two, used when the LL 
+    is of no importance
+    '''
+    return np.array([2])

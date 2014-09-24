@@ -12,14 +12,6 @@ import kernel.aux as aux
 class Test(unittest.TestCase):
 
 
-    def setUp(self):
-        pass
-
-
-    def tearDown(self):
-        pass
-
-
     def testCovVec(self):
         '''
         test the function that creates a covariance vector
@@ -31,8 +23,8 @@ class Test(unittest.TestCase):
         X.append( np.array([-2,2,0]) )
         w = np.array( [ 2, 2 , 3])
         r = 1.0
-        v = aux.covVec(X, w, r)
-        print(v)
+        v = aux.cov_vec(X, w, r)
+        #print(v)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testCovVec']

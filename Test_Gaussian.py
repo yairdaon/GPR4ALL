@@ -8,10 +8,10 @@ import unittest
 import numpy as np
 
 import kernel.sampler as smp
-import kernel.config as cfg
+import kernel.container as cot
 import kernel.kriging as kg
 import kernel.truth as truth
-import kernel.type as type
+import kernel.algorithm as alg
 
 import pylab as P
 import matplotlib.pyplot as plt
@@ -30,141 +30,113 @@ class Test(unittest.TestCase):
     '''
 
 
-    def setUp(self):
-        '''
-        here we set the test up
-        this means putting all required information 
-        inside the container object
-        '''
-        
-        # set seed for reproducibility
-        np.random.seed(89)
-        
-        # create an instance of the container
-        self.CFG = cfg.Config()
-        
-        # set the true log-likelihood to be a gaussian
-        self.CFG.setLL(truth.gaussian1D)
-        f = self.CFG.LL # call it f for short
-
-        # use one initial point        
-        p = np.array( [0.0] )
-        self.CFG.addPair(p, f(p))
-        
-        # parameters of the run:
-                
-        M = 10.0 # outside the box of size M the probability is zero
-        self.CFG.setM(M)
-        
-        r = 1.3 # the typical length scale of the kriging. a hyper parameter
-        self.CFG.setR(r)
-
-        # take and incorporate to data an initial sample:        
-        self.CFG.setAddSamplesToDataSet( True ) #... tell the container it does so...
-        
-        # create the sampler
-        self.sampler = smp.Sampler ( self.CFG )
-        
-        k =  45 # ...decide how many initial points we take to resolve the log-likelihood
-        for j in range(0,k): 
-            print( "Initial samples " + str(j+1) + " of " + str(k))
-            self.sampler.sample() # ... sample, incorporate into data set, repeat k times.
-        
-        
-        # plot kriged LL
-                
-        # allocating memory
-        x = np.arange(-10, 10, 0.05)
-        n = len(x)
-        f = np.zeros( n )
-        
-        # calculate the curves for the given input
-        for j in range(0,n):    
-            
-            # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] ,self.CFG) 
-            f[j] = v[0] # set the interpolant
-            
-        
-        # do all the plotting here
-        curve1  = plt.plot(x, f, label = "kriged value")
-        plt.plot( self.CFG.X, self.CFG.F, 'bo', label = "sampled points ")
-        plt.plot(x, truth.gaussian1D(x), label = "true log-likelihood")
-        
-        plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
-        
-        
-        plt.legend(loc=1,prop={'size':7})    
-        plt.title("Kriging with bounds using " + self.CFG.algType.getDescription() )
-        plt.savefig("graphics/Test_Gaussian: kriged LL")
-        plt.close()
-   
-            
-        
-    
     def testGaussian(self):
         '''
         take samples from posterior (log) likelihood
         and plot in histogram
         '''
         
-        # take 2000 samples. We DO NOT incorporate these into the data set
-        n =  2000
-        
-        # allocate memory for the data
-        samples = np.zeros(n)
-        
-        # do not incorporate newly sampled points in data set
-        self.CFG.setAddSamplesToDataSet( False )
-        
-        # sample n points from the kriged posterior log likelihood
-        print( "taking " + str(n) +  " samples from the posterior")
-        for i in range(n):
-            if (i % 50 == 0):
-                print( "Gaussian test, posterior sample " + str(i+1) + " of " + str(n))
-            samples[i] = self.sampler.sample() # ... sample, incorporate into data set, repeat k times.
-
-        
-        # do all the plotting business, copied from pylab's examples
-        P.figure()
-        # the histogram of the data with histtype='step'
-        nn, bins, patches = P.hist(samples, 20, normed=1, histtype='stepfilled')
-        P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
-        P.title(str(n) + " samples from the kriged (posterior) log-likelihood interpolating a Gaussian")
-        P.savefig("graphics/Test_Gaussian: Posterior Histogram")
-        P.close()
-        
-    def tearDown(self):
-        '''
-        plot the log likelihood the sampler used with the sampled points
-        and the true log likelihood
-        '''
+        # set seed for reproducibility
+        np.random.seed(89)
         
         # allocating memory
         x = np.arange(-10, 10, 0.05)
         n = len(x)
         f = np.zeros( n )
         
+        # create an instance of the container
+        specs = cot.Container(truth.gaussian_1D)
+
+        # use one initial point        
+        specs.add_point( np.array([0.0]) )
+       
+        # create the sampler
+        sampler = smp.Sampler ( specs )
+        
+        k =  4 # ...decide how many initial points we take to resolve the log-likelihood
+        for j in range(0,k): 
+            print( "Initial samples " + str(j+1) + " of " + str(k))
+            sampler.learn() # ... sample, incorporate into data set, repeat k times.
+        
+        
+        # plot kriged LL
+        
         # calculate the curves for the given input
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] ,self.CFG) 
+            v = kg.kriging(x[j] , specs) 
             f[j] = v[0] # set the interpolant
             
         
         # do all the plotting here
         curve1  = plt.plot(x, f, label = "kriged value")
-        curve2  = plt.plot( self.CFG.X, self.CFG.F, 'bo', label = "sampled points ")
-        curve3  = plt.plot(x, truth.gaussian1D(x), label = "true log-likelihood")
+        plt.plot( specs.X, specs.F, 'bo', label = "sampled points ")
+        plt.plot(x, specs.trueLL(x), label = "true log-likelihood")
         
         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
         
         
         plt.legend(loc=1,prop={'size':7})    
-        plt.title("Kriging with bounds using " + self.CFG.algType.getDescription() )
+        plt.title("Kriging with bounds using " + specs.algType.get_description() )
         plt.savefig("graphics/Test_Gaussian: kriged LL")
         plt.close()
+        
+        # Done plotting kriged LL, now sample:
+        
+        # take some samples. We DO NOT incorporate these into the data set
+        numSamples =  2000
+        
+        # allocate memory for the data
+        samples = np.zeros(numSamples)
+        batchSize = sampler.nwalkers
+        batch = np.zeros(batchSize)
+        
+        # sample n points from the kriged posterior log likelihood
+        print( "taking " + str(numSamples) +  " samples from the posterior:")
+        for j in range(numSamples/batchSize):
+            
+            # get a batch of the current walkers
+            batch = sampler.sample_batch()
+            
+            # iterate over this batch
+            for i in range(batchSize):  
+                
+                # add every walker to the samples and print 
+                samples[j*batchSize + i] = batch[i,:] 
+                if (  True ):#(j*batchSize + i) % 50 == 0):
+                    print( "Gaussian test, posterior sample " + str(j*batchSize + i + 1) + " of " + str(numSamples))
+        
+        # do all the plotting business, copied from pylab's examples
+        P.figure()
+        # the histogram of the data with histtype='step'
+        nn, bins, patches = P.hist(samples, 30, normed=1, histtype='stepfilled')
+        P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
+        P.title(str(n) + " samples from the kriged (posterior) log-likelihood interpolating a Gaussian")
+        P.savefig("graphics/Test_Gaussian: Posterior Histogram")
+        P.close()
+        
+        
+#         # calculate the curves for the given input
+#         for j in range(0,n):    
+#             
+#             # do kriging, get avg value and std dev
+#             v = kg.kriging(x[j] ,specs) 
+#             f[j] = v[0] # set the interpolant
+#             
+#         
+#         # do all the plotting here
+#         curve1  = plt.plot(x, f, label = "kriged value")
+#         curve2  = plt.plot( specs.X, specs.F, 'bo', label = "sampled points ")
+#         curve3  = plt.plot(x, specs.trueLL(x), label = "true log-likelihood")
+#         
+#         plt.setp( curve1, 'linewidth', 3.0, 'color', 'k', 'alpha', .5 )
+#         
+#         
+#         plt.legend(loc=1,prop={'size':7})    
+#         plt.title("Kriging with bounds using " + specs.algType.getDescription() )
+#         plt.savefig("graphics/Test_Gaussian: kriged LL")
+#         plt.close()
 
 
 

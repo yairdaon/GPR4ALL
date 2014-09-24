@@ -5,150 +5,214 @@ Created on May 2, 2014
 Feel free to write to me about my code!
 '''
 
-import math
 import numpy as np
-
-import kriging as kg 
-import truth 
-import aux 
-import config as cfg
-import goal
 
 import emcee as mc
 
+import kriging as kg 
+import container as cot
+import info as nfo
 
-def lnprob(s, CFG):
-        '''
-        return the interpolated f
-        here this is interpreted as a log-likelihood \ log-probability
-        input:
-        s - the point in space fr which we estimate the log-likelihood
-        X - a list of locations in space
-        F - a list of corresponding precalculated log-likelihoods
-        C -  an augmented covariance matrix
-        M - an artificial bound on the distribution. we insist that
-        if |x| > M (the sup norm) then the likelihood
-        is zero (so the log-likelihood is -infinity)
-        a hyper parameter, see the documentation for aux.cov(...) procedure
-        '''
-        
-#         M = CFG.M
-#         # we ensure M > |s| in sup norm
-#         # we should also make sure that all observations 
-#         # satisfy |X[j]| < M
-#         if (np.linalg.norm(s, np.inf)  >  M):
-#             return -np.inf
-        
-        # do kriging to estimate the the log likelihood in a new 
-        # location, given previous observations
-        mu, sig = kg.kriging(s, CFG)
-    
-        # return the interpolated value only - no use for the std dev
-        return mu
-    
+
 class Sampler:
     '''
-    a class that takes care of generating samples
+    This class generates samples from the posterior. It can also 
+    add points to its data via its learn() method. it calls the 
+    package emcee hammer
+    :param specs:
+        an instance of container.Container. This object holds all
+        the parameters and specifications of the current run.
+    :param nwalkers:
+        the number of Goodman & Weare walkers used. See documentation 
+        of the package emcee at <http://dan.iel.fm/emcee/current/>
+    :param burn:
+        the number of burn in steps we let the emcee sampler take
+    :param ndim:
+        size of the space in which the walkers walk and probabilities 
+        are calculated
+    :param pos:
+        current positions of the walkers, shape is (nwalkers, ndim)
+    :param useInfoGain: boolean, whether we use the information gain 
+		criterion for adding points. Set to False by default, until
+		I can make it work faster and better.
+    :param state:
+        state of the random number generator
+    :param walkerInd:
+        the index of the nex walker we return if we take a single 
+        sample. if walkerInd == nwalkers then we know we don't 
+        have new walkers to return, so we run the emcee sampler
+        to generate new samples
+    :param decorTime:
+        how many steps we take with the emcee sampler so we have new
+        independent (really uncorrelated) samples 
+    :param prob:
+        a vector of current log-likelihoods of the walkers. has
+        shape (nwalkers, ndim) 
+    :param blobs:
+        hold data of kriged variance - metadata of the calculation
+        of log-likelihoods.
+        
     '''
     
-    def __init__(self, CFG):
+    def __init__(self, specs, nwalkers=20, burn=500, useInfoGain=False ):
         '''
         create an instance, create walkers, let them walk
         '''
         
-        # keep the configuration file till the rest of time
-        self.CFG = CFG
+        # keep the configuration object till the rest of time
+        self.specs = specs
     
-         # the number of space dimensions
-        self.ndim = len(CFG.X[0])
+        # the number of space dimensions
+        self.ndim = len(specs.X[0])
         
         # set number of walkers
-        self.nwalkers =  10*self.ndim
+        self.nwalkers = nwalkers #150*self.ndim
         
         # set burn in time
-        self.burn = 150*(self.ndim)**(1.5)
+        self.burn = burn #500*(self.ndim)**(1.5)
         
         # the initial set of positions are uniform  in the box [-M,M]^ndim
         self.pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
-        self.pos = ( 2*self.pos  - 1.0 )*CFG.M # shift and stretch
+        self.pos = ( 2*self.pos  - 1.0 )*specs.M # shift and stretch
         self.pos = self.pos.reshape((self.nwalkers, self.ndim)) # reshape
         
-        
-        
-        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, lnprob, args=[ self.CFG ])
-        
+        # set the initial stat=
         self.state = np.random.get_state()
-    
-    
-    def choosePointRegression( self ):
-            ''' 
-            current criterion for evaluating LL is choose position 
-            of walker that maximizes  likelihood*variance
-            this might be a good choice criterion when we want to 
-            do INTERPOLATION.
-            '''
-            
-            return self.pos[0,:]
         
-            maxScore = 0
-            ind = 0 
-            for i in range(self.nwalkers):
+        # create the emcee sampler and let it burn in
+        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
+        self.run_mcmc(self.burn)
+        
+        self.useInfoGain = useInfoGain
+        # tell samplers that they do not need to propagate the walkers
+        self.walkerInd = 0
+        
+        # default decorrelation time. 
+        self.decorTime = burn/4
+
+    def sample_one(self):
+        '''
+        this method returns a single sample from the current posterior
+        since we have a bunch of walkers, we return one of those 
+        with every call to this method. if we have used them all 
+        (i.e if walerInd == nwalkers) then we are forced to run 
+        the emcee for some more time.
+        '''
+        
+        # if we have no more unused walkers
+        if self.walkerInd == self.nwalkers:
+            
+            # run the MCMC 
+            self.run_mcmc(self.decorTime)
+            
+            # the walker we sample is the zeroth
+            self.walkerInd = 0
+        
+        # we return the walker denoted by walkerInd     
+        sample =  self.pos[self.walkerInd,:]
+        
+        # the next we return is the next unused walker in the list
+        self.walkerInd = self.walkerInd + 1
+        
+        return sample
+            
+
+    def sample_batch(self):
+        '''
+        sample a bunch\ a batch
+        return a new, unused batch of positions of the goodman
+        & weare walkers
+        * ``samples`` - np array of size (nwalkers
+        '''
+        
+        if self.walkerInd != 0:
+            
+            # run the MCMC to get new batch 
+            self.run_mcmc(self.decorTime)
+        
+        # create a copy of the positions, so nothing unexpected happens if we parallelize
+        samples = self.pos[:,:]
+        
+        # let them know we used this batch
+        self.walkerInd = self.nwalkers
+        
+        return samples
+        
+    def run_mcmc(self, nsteps):
+        '''
+        run the emcee sampler for nsteps steps 
+        :param nsteps:
+            the number of steps we let the emcee sampler run
+        '''   
+        self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
+                                                    self.pos, nsteps, self.state ) 
+        
+
+    def learn(self):
+        '''
+        if we want to choose another point to calculate the 
+        log-likelihood at - this is the method we use
+        '''
+         
+        # choose the best point according to some criterion
+        if self.useInfoGain:
+            s = self.choose_point_info_gain()
+        
+        else:
+            s = self.choose_point_heuristic()
+
+        # add the new sample to our data set
+        self.specs.add_point( s )
+         
+        # create a new emcee sampler - the log likelihood has changed - and let it burn in
+        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
+        self.run_mcmc(self.decorTime)
+     
+    def choose_point_info_gain(self):
+        '''
+        use an information theoretic criterion to 
+        choose a point to calculate true log-likelihood in
+        '''
+        
+        maxInfoGain = 0
+        ind = 0 
+        for i in range(10):
+             
+            infoGain = nfo.information_gain(self.pos[i,:], self)
+             
+            if  infoGain > maxInfoGain:
+                ind = i
+                maxInfoGain = infoGain
+             
+        return self.pos[ind,:] #,maxInfoGain
+    
+    def choose_point_heuristic(self):
+        '''
+        use some heuristic, made up, ad hoc 
+        criterion to choose next point
+        '''    
+        chain = self.sam.chain
+        blobs = self.blobs
+        
+        maxScore = 0
+        ind = 0
+        for i in range(self.nwalkers):
+            #ideally, the walker would carry this info
+            krig, sig = kg.kriging( self.pos[i,:] , self.specs )
+#             ckrig = chain[-1,i]
+#             print(chain.shape)
+#             print(ckrig.shape)
+#             csig  = blobs[i]
+#             if (krig !=  ckrig) or (sig != csig):
+#                 print("whoa somethin went terribly wrong!!!")
                 
-                #ideally, the walker would carry this info 
-                krig, sig = kg.kriging( self.pos[i,:] , self.CFG )
-                
-                # choose walker based on this made up score
-                currScore = sig*krig 
-                
-                if  currScore > maxScore:
+            # choose walker based on this made up score
+            currScore = sig*krig
+            if currScore > maxScore:
                     ind = i
                     maxScore = currScore
-                
-            return self.pos[ind,:]
-    
-    def choosePointOptimization( self ):
-        '''
-        if we seek to optimize, we choose a point according
-        to the kriged dist and hope that it is closer to the 
-        maximum
-        '''
-        return self.pos[0,:]
-            
-    def sample(self):
-        '''
-        this procedure samples a distribution. this distribution is defined by 
-        kriging some previously collected data and interpolating it to give a 
-        distribution over states space.
-        input:    
-        CFG is a container object that holds all required data. see the config.py module
-        '''
-
-        # run the MCMC 
-        self.pos, self.prob, self.state = self.sam.run_mcmc(self.pos, self.burn, self.state ) 
-        
-        if self.CFG.addSamplesToDataSet == False:
-            return self.pos[0,:]
-    
-        else:
-    
-            # choose the best point according to some criterion
-            if self.CFG.goal == goal.REGRESSION:
-                s = self.choosePointRegression()
-            else: # i.e. if we choose optimization
-                s = self.choosePointOptimization()
-            
-            # calculate the corresponding log likelihood
-            f = np.array( [ self.CFG.LL(s) ] )
-        
-            # incorporate the new sample to our data set
-            cfg.Config.addPair(self.CFG, s, f)
-            
-            # update the required matrices required for the kriging calculation
-            cfg.Config.setMatrices(self.CFG)
-            
-            return s
-            
-            
+        return self.pos[ind,:]
+     
         
         
         

@@ -1,8 +1,17 @@
 import os
+import sys
 
-# creating directories for test data
-os.system("mkdir graphics")  
-os.system("mkdir Data")  
-os.system("mkdir Data/Movie2DSurfaceFrames")
-os.system("mkdir Data/Movie2DContourFrames")   
-os.system("mkdir Data/Movie1DFrames")
+def nsure_dir_xzists(dirname):
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+# making sure directories for test data exist 
+nsure_dir_xzists("graphics")
+nsure_dir_xzists("Data")
+nsure_dir_xzists("Data/Movie2DContourFrames")
+nsure_dir_xzists("Data/Movie1DFrames")
+
+version = sys.hexversion
+if version <  33949424:
+    print("You should be using python2.6 at least. This is your version:")
+    print(sys.version)
