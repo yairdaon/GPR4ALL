@@ -44,22 +44,24 @@ class Test(unittest.TestCase):
             specs.add_point(x)
 
         # ...set the characteristic distance....
-        sampler = smp.Sampler( specs , nwalkers=16 , burn=500 )
-        infoGainAvg = 0
+        sampler = smp.Sampler( specs , nwalkers=10 , burn=300 )
+        infoGainMax = -10
         
         start = time.time()
         
         for x in self.X: 
-            infoGainAvg += nfo.information_gain(x, sampler)  
+            currGain =  nfo.information_gain(x, sampler)
+            if currGain > infoGainMax:
+                infoGainMax = currGain
+            
+            
         
         infoGainOrigin = nfo.information_gain(np.array( [0,0] ), sampler)          
         
         end = time.time()
-        
-        infoGainAvg = infoGainAvg/5
-        
+                
         print("Info gain calculation takes " + str((end - start)/5) + " secs on average.")
-        print("Info gain at origin is " + str(infoGainOrigin/infoGainAvg) +
+        print("Info gain at origin is " + str(infoGainOrigin/infoGainMax) +
                          " larger than at known points.")
         
 if __name__ == "__main__":

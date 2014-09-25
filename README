@@ -1,4 +1,5 @@
-
+Introduction
+--------------------------------------------------------------------------------
 This package is intended to do the following ( assumption - calculating EXACT 
 log-likelihood is expensive ):
 
@@ -12,26 +13,35 @@ log-likelihood is expensive ):
 6. Goto 1 until you've had enough.
 7. Sample from the posterior estimated log-likelihood.
 
-Here is what you would like to do i order to get samples
+
+
+Quickstart
+--------------------------------------------------------------------------------
+You may start by typing "make tests" in the command line. Let them run. You may
+then take a look at the short example.py file. You will also be required to look
+at the even shorter wrapper script called rap.py. 
 
 
 
-You may start by typing "make tests" in the command line . Then come back
- here and check these notes before you really delve into the code:
-
+General Information
+--------------------------------------------------------------------------------
 1. Whenever I refer to a "container object", I mean an instance of the class 
 'Container' in the  'kernel.container' module. Usually an instance is called specs,
- a short for specifications.
+a short for specifications. This instance holds everything a sampler needs.
  
 2. You have a container object. Sampling from the posterior it defines is done by
- an instance of Sampler. See the documentation of this class to see what possibilities you have in terms of sampling.
+an instance of Sampler. See example.py to see how you sample from the posterior.
+If you are looking for a method similar to emcee's chain method, it is
 
-3. To put data inside the a containetr object use  its 'add_pair(x, f)' method. If you want to add a point with unknown likelihood to the data set in the container, use the add_point( point ) method instead. If you want the sampler to search, find and add a new point on its own, use its learn() method
+3. To add data to a containetr use  its add_pair(x, f) method. If you want to 
+add a point with unknown likelihood to the data set in the container, use the
+add_point( point ) method instead. If you want the sampler to search, find and 
+add a new point on its own, use its sampler.learn() method.
 
 4. Every container object has a variable M. If you're not careful, you will not 
 be able to take samples with ||x||_{inf} > M. So M needs to fit your needs. You
 can read more in the documentation if you want to set a prior on the log-likelihood
- or just use the setM( bigNumber ) method of members of class Container.
+or just use the setM( bigNumber ) method of members of class Container.
 
 
 
