@@ -10,6 +10,7 @@ LL variable of the container.
     
 '''
 import numpy as np
+import math
 
 # Some log likelihoods the tests use
 
@@ -17,7 +18,7 @@ def sin_1D(s):
     '''
     a wiggly sine log likelihood
     '''    
-    return np.sin(3*s)
+    return math.sin(3*s)
     
 def gaussian_1D(s):
     '''
@@ -42,14 +43,14 @@ def norm_2D(s):
     some 2D log likelihood function
     '''
     t = np.linalg.norm(s)
-    return -np.array( [t*t] )
+    return -t*t
 
 def rosenbrock_2D(s):
     '''
     the (negative of the) 2D Rosenbrock function. google it if you've never
     heard of it.
     '''
-    return -np.array(     [ (1 - s[0])**2 + 100*(s[1] - s[0]**2)**2  ]  )
+    return -(  (1 - s[0])**2 + 100*(s[1] - s[0]**2)**2  )
     
 
 def log_rosenbrock_2D(s):
@@ -57,18 +58,18 @@ def log_rosenbrock_2D(s):
     '''
     log of Rosenbrock's function
     '''
-    return np.log( np.array(  [  (1-s[0])**2  +  100*(s[1]-s[0]**2)**2  ]  ) )
+    return math.log(  (1-s[0])**2 + 100*(s[1]-s[0]**2)**2   )
 
 def zero(s):
     '''
     identically zero, used when the LL 
     is of no importance
     '''
-    return np.array([0])
+    return 0
 
 def const(s):
     '''
     identically two, used when the LL 
     is of no importance
     '''
-    return np.array([2])
+    return 2

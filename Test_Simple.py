@@ -20,24 +20,23 @@ class Test(unittest.TestCase):
     
     def testSimple(self):
         
-        x1 =  np.matrix( [ 0 , 1 ] )
-        x2 =  np.matrix( [ 1 , 0 ] )
-        x3 =  np.matrix( [ 0 ,-1 ] )
-        x4 =  np.matrix( [-1 , 0 ] )
-        f1 = np.array( [0] )
-        f2 = np.array( [2] )
-        f3 = np.array( [0] )
-        f4 = np.array( [-2] )
+        X = []
+        X.append(np.array( [ 0 , 1 ] ))
+        X.append(np.array( [ 1 , 0 ] ))
+        X.append(np.array( [ 0 ,-1 ] ))
+        X.append(np.array( [-1 , 0 ] ))
+        
+        F = []
+        F.append(np.array( [0 ] ))
+        F.append(np.array( [2 ] ))
+        F.append(np.array( [0 ] ))
+        F.append(np.array( [-2] ))
 
         # create the container  (the true LL is zero since it is of no importance)
-        specs = cot.Container( truth.zero , r=1.0)
-        
-        # ...add the points to it ...
-        specs.add_pair(x1, f1)
-        specs.add_pair(x2, f2)
-        specs.add_pair(x3, f3)
-        specs.add_pair(x4, f4)
+        specs = cot.Container( truth.zero , r=1.0 )
     
+        for i in range(len(X)):
+            specs.add_pair(X[i], F[i])
         # the center of mass of the x1,...,x4 is (0,0)
         s = np.array( [0, 0] )
         

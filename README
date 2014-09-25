@@ -12,10 +12,11 @@ log-likelihood is expensive ):
 6. Goto 1 until you've had enough.
 7. Sample from the posterior estimated log-likelihood.
 
-*The algorithm used is either the one is page 257 of [1] ("augmented covariance 
-matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
+Here is what you would like to do i order to get samples
 
-Start by typing running any of the graphical tests (movie, plots). Then come back
+
+
+You may start by typing "make tests" in the command line . Then come back
  here and check these notes before you really delve into the code:
 
 1. Whenever I refer to a "container object", I mean an instance of the class 
@@ -32,6 +33,10 @@ be able to take samples with ||x||_{inf} > M. So M needs to fit your needs. You
 can read more in the documentation if you want to set a prior on the log-likelihood
  or just use the setM( bigNumber ) method of members of class Container.
 
+
+
+*The algorithm used is either the one is page 257 of [1] ("augmented covariance 
+matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
 
 [1]. Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.
 [2]. Gaussian Processes for Machine Learning, Rasmussen & Williams, 2006.

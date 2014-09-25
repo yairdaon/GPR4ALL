@@ -49,6 +49,7 @@ def kriging(s, specs):
     
     kriged = f + specs.prior(s)
     std = math.sqrt( max(sigSquare,0) )   
+
     return kriged , std 
  
 def acm_kriging(s, specs):
@@ -81,7 +82,7 @@ def acm_kriging(s, specs):
 
         
     # number of samples we have.
-    n = len(F)
+    n = len(X)
     
     # create the target c:
     c = np.zeros( n+1 )
@@ -96,7 +97,7 @@ def acm_kriging(s, specs):
     lam = lam/np.sum(lam) #make sure weights sum to 1
     
     # calculate the kriged estiamte
-    f = np.zeros( len(F[0]) )
+    f = 0
     for i in range(n):
         f = f + lam[i] * F[i]
         
@@ -140,7 +141,7 @@ def rw_kriging(s, specs):
     # solve for lambda 
     alpha = aux.tychonoff_solver(specs.U, specs.S, specs.V, y, reg)
     
-    f = np.zeros( len(specs.Fmp[0]) ) # F minus prior
+    f = 0 # F minus prior
     for i in range(n):
         f = f + alpha[i] * k[i]
         
@@ -171,7 +172,6 @@ def set_get_limit(specs):
             
             # unpack
             F = specs.Fmp # F minus prior
-            S = specs.S
             n = len(F)
             
             # set target
@@ -182,7 +182,7 @@ def set_get_limit(specs):
             lam = aux.tychonoff_solver(specs.U, specs.S, specs.V, c, specs.reg)
             
             # calculate the function value according to these weights
-            lim = np.zeros( len(F[0]) )
+            lim = 0
             for i in range(n):
                 lim = lim + lam[i] * F[i] 
             

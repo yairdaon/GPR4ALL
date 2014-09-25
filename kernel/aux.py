@@ -19,7 +19,7 @@ def cov(x,y,r):
     :param r: the characteristic length scale of
         of the covariance
     * ``cov`` - the covariance between x,y with 
-    haracteristic length r
+        characteristic length r
     '''
     
     if np.all(x==y):

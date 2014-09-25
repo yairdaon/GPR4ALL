@@ -14,6 +14,7 @@ import mcint
 import aux
 import algorithm as alg
 import kriging as kg
+import kernel.rap as rap
 
 class Container:   
     '''
@@ -28,6 +29,27 @@ class Container:
         (supposedly) takes a long while to calculate, so we want to
         call it as less frequently as possible.
     
+    :pararm prior: the prior log-likelihood. We use it so that probability
+        goes to zero nicely and we may choose not to truncate the probability
+        outside of the box of size M. By default, however, we do just that.
+    
+    :param parameters: 
+        these are the parameters of the true log-likelihood. it can be in any form,
+        as long as it is one python object. The only place these parameters are used
+        is when we call trueLL. It is defaulted as None.
+    
+    :param r: the characteristic lenght scale of the covariance function
+    
+    :Param M: a number. usually it is the size of the box outside of 
+        which we assume the probability is zero. We also use it to put
+        bounds on plots every once in a while
+    
+    :param algType: the type of algorithm used for kriging. We usually use
+        algorithm 2.1 from the book Gaussian Processes for Machine Learning
+        which can be found at <http://www.gaussianprocess.org/gpml/>. In other 
+        occasions we use an unbiased version of the above. That can be found at
+        Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.   
+    
     :param X:
         a list of places in space for which we know the log-likelihood
     
@@ -36,22 +58,6 @@ class Container:
     :param Fmp: F minus prior. We subtract the prior log-likelihood
         from every entry of F. We do kriging using Fmp, then add 
         back what we subtracted
-    
-    :param r: the characteristic lenght scale of the covariance function
-    
-    :Param M: a number. usually it is the size of the box outside of 
-        which we assume the probability is zero. We also use it to put
-        bounds on plots every once in a while
-        
-    :pararm prior: the prior log-likelihood. We use it so that probability
-        goes to zero nicely and we may choose not to truncate the probability
-        outside of the box of size M. By default, however, we do just that.
-        
-    :param algType: the type of algorithm used for kriging. We usually use
-        algorithm 2.1 from the book Gaussian Processes for Machine Learning
-        which can be found at <http://www.gaussianprocess.org/gpml/>. In other 
-        occasions we use an unbiased version of the above. That can be found at
-        Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.
         
     :param reg: this is a regularizing term, used to solve linear equations
         stably using Tychonoff regularization. Some more information may be found
@@ -68,7 +74,8 @@ class Container:
     of space. It is set to -1 in case we think it is not up to date.
     '''
         
-    def __init__(self,trueLL,r=1.3,M=10.0, algType=alg.RASMUSSEN_WILLIAMS ):
+    def __init__(self,trueLL,r=1.3,M=10.0,  
+                 algType=alg.RASMUSSEN_WILLIAMS , parameters=None):
         '''
         we set many default parameters here. you may change them if you 
         are sure you understand what they do. change them using their 
@@ -78,12 +85,11 @@ class Container:
         # point to the true log-likelihood that we'll use
         self.trueLL = trueLL
         
-        self.X = [] # list observations... 
-        self.F = []  # ...corresponding log-likelihoods
-        self.Fmp = [] # F minus prior
-        
         # set prior to decay exponentially
         self.prior = lambda x: -np.inf if aux.inf_norm(x)  > self.M else 0.0
+        
+        # parameters for the true log-likelihood
+        self.parameters = parameters
         
         # some parameters
         self.r = r # hyper paramenter
@@ -93,6 +99,10 @@ class Container:
         # the regularization used in the kriging procedure
         self.reg = 100*np.finfo(np.float).eps
         
+        self.X = [] # list observations... 
+        self.F = [] # ...corresponding log-likelihoods
+        self.Fmp = [] # F minus prior
+
         # are the matrices we use ready or do we need to calculate them
         self.matricesReady = False
         
@@ -205,7 +215,9 @@ class Container:
         using that data
         '''
         
-        f = self.trueLL(x)
+        # call the LL with the parameters
+        f = rap.rapper( x, self.trueLL , self.parameters)
+        
         self.X.append(x)
         self.F.append(f)
         self.Fmp.append( f - self.prior(x) )

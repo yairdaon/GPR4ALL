@@ -14,7 +14,7 @@ import container as cot
 import info as nfo
 
 
-class Sampler:
+class Sampler(object):
     '''
     This class generates samples from the posterior. It can also 
     add points to its data via its learn() method. it calls the 
@@ -76,19 +76,21 @@ class Sampler:
         self.pos = ( 2*self.pos  - 1.0 )*specs.M # shift and stretch
         self.pos = self.pos.reshape((self.nwalkers, self.ndim)) # reshape
         
-        # set the initial stat=
+        # set the initial state of the PRNG
         self.state = np.random.get_state()
         
         # create the emcee sampler and let it burn in
         self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
         self.run_mcmc(self.burn)
         
+        # use information theoretic criterion or not
         self.useInfoGain = useInfoGain
+        
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
         
         # default decorrelation time. 
-        self.decorTime = burn/4
+        self.decorTime = burn/2
 
     def sample_one(self):
         '''
@@ -122,7 +124,7 @@ class Sampler:
         sample a bunch\ a batch
         return a new, unused batch of positions of the goodman
         & weare walkers
-        * ``samples`` - np array of size (nwalkers
+        * ``samples`` - np array of size (nwalkers , ndim)
         '''
         
         if self.walkerInd != 0:
@@ -146,7 +148,7 @@ class Sampler:
         '''   
         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
                                                     self.pos, nsteps, self.state ) 
-        
+         
 
     def learn(self):
         '''
@@ -191,8 +193,8 @@ class Sampler:
         use some heuristic, made up, ad hoc 
         criterion to choose next point
         '''    
-        chain = self.sam.chain
-        blobs = self.blobs
+#         chain = self.sam.chain
+#         blobs = self.blobs
         
         maxScore = 0
         ind = 0

@@ -12,9 +12,7 @@ import time
 
 import kernel.container as cot
 import kernel.info as nfo
-import kernel.kriging as kg
 import kernel.sampler as smp
-import kernel.algorithm as alg
 import kernel.truth as truth
 
 class Test(unittest.TestCase):
@@ -47,15 +45,22 @@ class Test(unittest.TestCase):
 
         # ...set the characteristic distance....
         sampler = smp.Sampler( specs , nwalkers=16 , burn=500 )
+        infoGainAvg = 0
         
         start = time.time()
-        self.X.append( np.array([0,0]) )
+        
         for x in self.X: 
-            infoGain = nfo.information_gain(x, sampler)
-            print("Information gain for x = " + str(x) + " is " +
-                                 str(infoGain))
+            infoGainAvg += nfo.information_gain(x, sampler)  
+        
+        infoGainOrigin = nfo.information_gain(np.array( [0,0] ), sampler)          
+        
         end = time.time()
-        print("Calculating information gain takes " + str((end - start)/5) + " seconds on average")
+        
+        infoGainAvg = infoGainAvg/5
+        
+        print("Info gain calculation takes " + str((end - start)/5) + " secs on average.")
+        print("Info gain at origin is " + str(infoGainOrigin/infoGainAvg) +
+                         " larger than at known points.")
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testgetNormalization']
