@@ -15,14 +15,15 @@ import kernel.sampler as smp
 # Also, look at rap.py - very(!!) short.
 
 #lets say our true LL is the following
-def minus_norm_squared_LL(s, num, someList):
+def minus_norm_squared_LL(s, *args, **kwargs):
     
     print("We called the true log likelihood function.")
     print("Here we pretend we use the list:")
-    for x in someList:
+    for x in args:
             print(x)
     
-    print("Here we pretend we use num: " + str(num) )
+    print("Here we pretend we use kwargs: ")
+    print(kwargs)
     print("")
     result = -np.linalg.norm(s)**2
         
@@ -41,14 +42,11 @@ f1 = -13
 f2 = -130 # we won't use it but it's still here
 
 # Throw all parameters together.
-parameters = []
-num = 1
-parameters.append(num)
-someList = [2, 4, 6]
-parameters.append(someList)
+l = [1 ,3 ,6]
+d = {'hi!' : 2, 'my name is': 4, 'what?': 6}
 
 # create a container to hold everything, explanations below.
-specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, parameters = parameters)
+specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=l, kwargs=d)
 
 # 1st argument - your true log-likelihood.
 
@@ -76,7 +74,8 @@ specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, parameters = paramet
 specs.add_pair(x1, f1) 
 
 # if we must add x2 but don't have its log-likelihood
-specs.add_point(x2) 
+print("First call to our true log-likelihood function!!!")
+specs.add_point(x2)  
 
 # we'll see the third way below...
 
@@ -92,6 +91,7 @@ sampler = smp.Sampler(specs, nwalkers=6, burn=100, useInfoGain=False)
 
 # third way to add data: if we want to calculate log-likelihood 
 # and we trust the sampler to choose it wisely
+print("Second call to our true log-likelihood function!!!")
 sampler.learn() # now specs has three points!!!
 
 

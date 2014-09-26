@@ -5,18 +5,15 @@ Created on Sep 25, 2014
 Feel free to write to me about my code!
 '''
 
-def rapper( s, trueLL, parameters ):
+def rapper( s, trueLL, args, kwargs ):
     
-    if parameters==None:
-        return trueLL(s)
+    # do what you want here, I'll just ignore the additional
+    # arguments for my purposes.  
+
+    if len(args) + len(kwargs) == 0:
+        return trueLL(s)   
     
-    else:
-        # Unpack parameters here, call trueLL with parameters
-        # and return the value.
-        # Here is unpacking that works with example.py
-        num = parameters[0]
-        someList = parameters[1]
-        f = trueLL(s, num, someList)
-        return f
-        
+    return trueLL(s , *args , **kwargs )
+    
+         
         

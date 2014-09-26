@@ -72,10 +72,16 @@ class Container:
         
     :param normalization: the integral of e^{kriged log-likelihood} over all
     of space. It is set to -1 in case we think it is not up to date.
+    
+    :param args (optional):
+        a list of parameters for the true log-likelihood function
+        
+    :param kwargs (optional):
+        as above, a dictionary of key word argument for the true log-likelihood
     '''
         
     def __init__(self,trueLL,r=1.3,M=10.0,  
-                 algType=alg.RASMUSSEN_WILLIAMS , parameters=None):
+                 algType=alg.RASMUSSEN_WILLIAMS , args =[] , kwargs = {} ):
         '''
         we set many default parameters here. you may change them if you 
         are sure you understand what they do. change them using their 
@@ -89,7 +95,8 @@ class Container:
         self.prior = lambda x: -np.inf if aux.inf_norm(x)  > self.M else 0.0
         
         # parameters for the true log-likelihood
-        self.parameters = parameters
+        self.args   = args
+        self.kwargs = kwargs
         
         # some parameters
         self.r = r # hyper paramenter
@@ -216,7 +223,7 @@ class Container:
         '''
         
         # call the LL with the parameters
-        f = rap.rapper( x, self.trueLL , self.parameters)
+        f = rap.rapper( x, self.trueLL , self.args, self.kwargs)
         
         self.X.append(x)
         self.F.append(f)
