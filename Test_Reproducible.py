@@ -9,7 +9,6 @@ import numpy as np
 import kernel.container as cot
 import kernel.truth as truth
 import kernel.sampler as smp
-import kernel.kriging as kg
 class Test(unittest.TestCase):
     '''
     make sure we can reproduce results.

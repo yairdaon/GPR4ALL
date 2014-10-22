@@ -15,15 +15,12 @@ import kernel.kriging as kg
 import kernel.sampler as smp
 import kernel.truth as truth
 import kernel.container as cot
-import kernel.algorithm as alg
 
 
 class Test(unittest.TestCase):
     '''
-    if this does not work, it is most likely because you don't have 
-    ffmpeg and\or vlc. go to the tearDown method to change these to
-    whatever you have in your system.
-    
+    if this does not work, it is likely that don't have 
+    ffmpeg. 
     this unit test creates a movie. run it and see for yourself!!
     '''
 
@@ -59,7 +56,7 @@ class Test(unittest.TestCase):
  
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  28   
+        nf    =  41   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
@@ -103,8 +100,7 @@ class Test(unittest.TestCase):
             cs = ax.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 30)  ) 
             ax.clabel(cs, fmt = '%.0f', inline = True) 
             ax.scatter(xs, ys)
-            plt.title('Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' 
-                                    + str(specs.r) + " Algorithm: " + specs.algType.get_description())
+            plt.title('Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(specs.r) )
             
             # save the plot several times
             for k in range(delay):   
@@ -125,24 +121,14 @@ class Test(unittest.TestCase):
         
         
 #         after the test was run - we create the movie.
-#         you need two programs installed on your machine to make this work:
 #         you need ffmpeg to create the movie from the frames python saves 
-#         and you need vlc to watch the movie
-#         feel free to change these two lines here according to whatever
-#         programs you have installed in your system
-#         
         
         # delete previous movie
-#         os.system("rm -f graphics/Movie2DSurface.mpg")   
         os.system("rm -f graphics/Movie2DContour.mpg")     
         
         # create new movie 
-#         os.system("ffmpeg -i Data/Movie2DSurfaceFrames/Frame%d.png graphics/Movie2DSurface.mpg") 
         os.system("ffmpeg -i Data/Movie2DContourFrames/Frame%d.png graphics/Movie2DContour.mpg") 
         
-        #play new movie
-        #os.system("vlc Movie2.mpg")     
-
 
             
 if __name__ == "__main__":

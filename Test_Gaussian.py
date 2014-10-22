@@ -63,9 +63,8 @@ class Test(unittest.TestCase):
         # calculate the curves for the given input
         for j in range(0,n):    
             
-            # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] , specs) 
-            f[j] = v[0] # set the interpolant
+            # do kriging 
+            f[j] =  kg.kriging(x[j] , specs)[0]  
             
         
         # do all the plotting here
@@ -77,7 +76,7 @@ class Test(unittest.TestCase):
         
         
         plt.legend(loc=1,prop={'size':7})    
-        plt.title("Kriging with bounds using " + specs.algType.get_description() )
+        plt.title("Kriged Log Likelihood")
         plt.savefig("graphics/Test_Gaussian: kriged LL")
         plt.close()
         
@@ -110,9 +109,9 @@ class Test(unittest.TestCase):
         # do all the plotting business, copied from pylab's examples
         P.figure()
         # the histogram of the data with histtype='step'
-        nn, bins, patches = P.hist(samples, 30, normed=1, histtype='stepfilled')
+        _, _, patches = P.hist(samples, 30, normed=1, histtype='stepfilled')
         P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
-        P.title(str(n) + " samples from the kriged (posterior) log-likelihood interpolating a Gaussian")
+        P.title(str(n) + " samples from the posterior likelihood interpolating a Gaussian")
         P.savefig("graphics/Test_Gaussian: Posterior Histogram")
         P.close()
     

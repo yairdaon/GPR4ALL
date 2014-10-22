@@ -5,7 +5,7 @@ log-likelihood is expensive ):
 
 1. Get some data set of (location ,  exact log-likelihood) pairs. log-likelihood
  given up to an additive constant.
-2. Perform gausiian processs regression (a.k.a KRIGING)* to estimate log-likelihood
+2. Perform Gaussian process regression (a.k.a KRIGING)* to estimate log-likelihood
  on entire state space.
 3. Sample from the estimated log-likelihood.
 4. Calculate  exact log-likelihood.
@@ -45,8 +45,5 @@ or just use the setM( bigNumber ) method of members of class Container.
 
 
 
-*The algorithm used is either the one is page 257 of [1] ("augmented covariance 
-matrix") or algorithm 2.1 in page 19 of [2] ("Rasmussen Williams). You get to choose.
-
-[1]. Regression Models for Time Series Analysis, Kedem & Fokianos, 2002.
-[2]. Gaussian Processes for Machine Learning, Rasmussen & Williams, 2006.
+*The algorithm used is algorithm 2.1 in page 19 of:
+Gaussian Processes for Machine Learning, Rasmussen & Williams, 2006.

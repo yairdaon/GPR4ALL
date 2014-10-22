@@ -10,100 +10,103 @@ import numpy as np
 import kernel.container as cot
 import kernel.sampler as smp
 
-
+callsToLL = 0
 # An  example of using this package. 
 # Also, look at rap.py - very(!!) short.
 
-#lets say our true LL is the following
+#===============================================================================
+# A. Our fake log likelihood
+#===============================================================================
 def minus_norm_squared_LL(s, *args, **kwargs):
-    
-    print("We called the true log likelihood function.")
-    print("Here we pretend we use the list:")
-    for x in args:
-            print(x)
-    
+    global callsToLL
+    callsToLL +=1
+    print("-------------------------------------------")
+    print( str(callsToLL) +" calls to true log-likelihood function.")
+    print("Here we pretend we use args:")
+    print(args)
     print("Here we pretend we use kwargs: ")
     print(kwargs)
+    print("-------------------------------------------")
     print("")
-    result = -np.linalg.norm(s)**2
+    
+    return -np.linalg.norm(s)**2
         
-    return result
+        
             
 
-    
-    
-# Our data:
-# x in R^d where we know LL ...
-x1 = np.array( [2 ,3 ])
-x2 = np.array( [11,-3])
+#===============================================================================
+# B. Creating the object that will hold the data
+#===============================================================================
 
-#...and the corresponding log-likelihoods:
-f1 = -13
-f2 = -130 # we won't use it but it's still here
-
-# Throw all parameters together.
-l = [1 ,3 ,6]
-d = {'hi!' : 2, 'my name is': 4, 'what?': 6}
+# Fake parameters that we pretend the log-likelihood needs.
+args = [1 ,3 ,6]
+kwargs = {'hi!' : 2, 'my name is': 4, 'what?': 6}
 
 # create a container to hold everything, explanations below.
-specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=l, kwargs=d)
+specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=args, kwargs=kwargs)
 
 # 1st argument - your true log-likelihood.
 
 # M is such that if ||x||_{inf} > M the log-likelihood is -inf.
 # make sure your data does not violate this restriciton.
 # if you don't want that restriction, ignore it and choose another prior by uncommenting:
-# specs.set_prior( lambda x: -np.linalg.norm(x)**2)
+# specs.set_prior( lambda x: -20*np.linalg.norm(x)**2)
 
 # r is the characteristic length scale. set it to what you find right or
-# use the magical default: 1.3
+# use the default: 1.3
 
-# parameters - everything you need to make your log-likelihood give results.
-#If you don't want to use extra parameters, just erase the irrelevant part:
-#specs = cot.Container( made_up_LL , M=15, r=2.4 ,X=X, F=F)
-
+#If you don't want to use extra parameters, you may erase the irrelevant part:
+#specs = cot.Container( made_up_LL , M=15, r=2.4)
 
 
 
 
 
 
-# three ways to add data:
 
-# if we have the corresponding log-likelihood
+
+
+#===============================================================================
+# C. Three ways to add data
+#===============================================================================
+
+# (1) We know x1 and the log-likelihood at x1 , denoted f1:
+# take x1 in R^d ... 
+x1 = np.array( [2 ,3 ])
+#... its log-likelihood ...
+f1 = -13
+# and add both to the data set
 specs.add_pair(x1, f1) 
 
-# if we must add x2 but don't have its log-likelihood
-print("First call to our true log-likelihood function!!!")
-specs.add_point(x2)  
-
-# we'll see the third way below...
 
 
+# (2) If we must add x2 but don't know the value of its log-likelihood
+x2 = np.array( [11,-3])
+specs.add_point( x2 )
 
 
+# Before presenting the third way we have to
+# create a sampler with the data and specifications.
+sampler = smp.Sampler(specs, nwalkers=6, burn=100)
 
-# create a sampler with this data and specifications, comment below.
-sampler = smp.Sampler(specs, nwalkers=6, burn=100, useInfoGain=False)
-# simple, except for the useInfoGain=False. This curretnly runs too slow.
-# we may use it in the future. False is the default value but change it
-# if you feel like.
-
-# third way to add data: if we want to calculate log-likelihood 
-# and we trust the sampler to choose it wisely
-print("Second call to our true log-likelihood function!!!")
+# (3) If we trust the sampler to choose the next point wisely
 sampler.learn() # now specs has three points!!!
 
 
 
 
-
-
-
-
-# get ready to sample. You can sample a bunch (faster):
+#===============================================================================
+# D. Sample
+#===============================================================================
+# Sample a bunch:
 batch = sampler.sample_batch() 
 # the shape of a batch is (nwalkers, ndim) = (6 , 2) here.
 
-# and you can sample one (somewhat slower):
-print("A single sample from the posterior: "+ str(sampler.sample_one()))
+# Sample one:
+one = sampler.sample_one()
+
+print("A single sample from the posterior: "+ str(one))
+print("")
+print("A batch sampled from the posterior. the shape is (nwalkers , ndim). ")
+print(batch)
+print("Don't forget to take a look at rap.py - it is super short.")

@@ -34,9 +34,3 @@ class PointWithError(np.ndarray):
         # see InfoArray.__array_finalize__ for comments
         if obj is None: return
         #self.info = getattr(obj, 'info', None)  # commented by myself   
-        
-    def get_error(self):
-        return self.error
-    
-      
- 

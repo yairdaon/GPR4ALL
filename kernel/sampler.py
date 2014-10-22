@@ -6,12 +6,14 @@ Feel free to write to me about my code!
 '''
 
 import numpy as np
+from scipy import __version__ as ver
+import scipy.optimize
 
 import emcee as mc
 
 import kriging as kg 
-import container as cot
-import info as nfo
+import gradient 
+import targets
 
 
 class Sampler(object):
@@ -54,7 +56,7 @@ class Sampler(object):
         
     '''
     
-    def __init__(self, specs, nwalkers=20, burn=500, useInfoGain=False ):
+    def __init__(self, specs, nwalkers=20, burn=500):
         '''
         create an instance, create walkers, let them walk
         '''
@@ -64,9 +66,12 @@ class Sampler(object):
     
         # the number of space dimensions
         self.ndim = len(specs.X[0])
-        
+            
         # set number of walkers
         self.nwalkers = nwalkers #150*self.ndim
+        
+        # number of points to start optimization. 
+        self.noptimizers = self.nwalkers
         
         # set burn in time
         self.burn = burn #500*(self.ndim)**(1.5)
@@ -82,9 +87,6 @@ class Sampler(object):
         # create the emcee sampler and let it burn in
         self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
         self.run_mcmc(self.burn)
-        
-        # use information theoretic criterion or not
-        self.useInfoGain = useInfoGain
         
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
@@ -155,67 +157,36 @@ class Sampler(object):
         if we want to choose another point to calculate the 
         log-likelihood at - this is the method we use
         '''
-         
-        # choose the best point according to some criterion
-        if self.useInfoGain:
-            s = self.choose_point_info_gain()
         
-        else:
-            s = self.choose_point_heuristic()
-
+        # choose the next point 
+        s = self.choose_point_heuristic()
+        
         # add the new sample to our data set
         self.specs.add_point( s )
-         
-        # create a new emcee sampler - the log likelihood has changed - and let it burn in
-        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
-        self.run_mcmc(self.decorTime)
-     
-    def choose_point_info_gain(self):
-        '''
-        use an information theoretic criterion to 
-        choose a point to calculate true log-likelihood in
-        '''
         
-        maxInfoGain = 0
-        ind = 0 
-        for i in range(10):
-             
-            infoGain = nfo.information_gain(self.pos[i,:], self)
-             
-            if  infoGain > maxInfoGain:
-                ind = i
-                maxInfoGain = infoGain
-             
-        return self.pos[ind,:] #,maxInfoGain
+        # let them know we need a new batch before we sample
+        self.walkerInd = self.nwalkers
     
     def choose_point_heuristic(self):
         '''
         use some heuristic, made up, ad hoc 
         criterion to choose next point
-        '''    
-#         chain = self.sam.chain
-#         blobs = self.blobs
+        '''           
         
-        maxScore = 0
-        ind = 0
-        for i in range(self.nwalkers):
-            #ideally, the walker would carry this info
-            krig, sig = kg.kriging( self.pos[i,:] , self.specs )
-#             ckrig = chain[-1,i]
-#             print(chain.shape)
-#             print(ckrig.shape)
-#             csig  = blobs[i]
-#             if (krig !=  ckrig) or (sig != csig):
-#                 print("whoa somethin went terribly wrong!!!")
-                
-            # choose walker based on this made up score
-            currScore = sig*krig
-            if currScore > maxScore:
-                    ind = i
-                    maxScore = currScore
-        return self.pos[ind,:]
-     
+        target = targets.minus_exp_krig_times_sig_square  
+        bestValue = np.inf
         
-        
-        
-        
+        for i in range(self.noptimizers):
+            
+            # sample a starting point
+            startPoint = self.sample_one()
+            result = scipy.optimize.minimize(target, startPoint, args=(self.specs,), 
+                                                                method='Powell')
+            
+            if result.fun < bestValue:
+                bestValue = result.fun
+                bestPoint = result.x
+            
+       
+        bestPoint = bestPoint.reshape(self.ndim,)        
+        return bestPoint

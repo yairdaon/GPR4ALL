@@ -9,67 +9,43 @@ import math
 
 import point
 
-def cov(x,y,r):
+def cov(x,y, r, d):
     '''
-    calculate autocovariance
+    calculate autocovariance as
+    k(x,y) = exp(   -||x-y||^2 / r   )
     :param x:
         first point in space
     :param y: 
         second point in space
     :param r: the characteristic length scale of
         of the covariance
+    :param d: the covariance for two points that
+        are arbitrarily far apart
     * ``cov`` - the covariance between x,y with 
         characteristic length r
     '''
     
-    if np.all(x==y):
-        if isinstance(x , point.PointWithError):
-            return x.get_error() + 1.0
-        else:
-            return 1.0 
-    else: 
-        temp = np.linalg.norm(x-y)
-        return  math.exp(  -temp*temp/(2*r*r)  ) 
+    if isinstance(x , point.PointWithError):
+        if np.all(x==y):
+            return x.error  + d
+        
+    temp = np.linalg.norm(x-y)
+    return  d*math.exp(  -temp*temp/(2*r*r)  ) 
 
     # if we consider noisy observations
     
     
     return cov
 
-def aug_cov_mat(X,r):
-    '''
-    return the augmented covariance matrix for the observations,
-    used for kriging. see 
-    '''
-    
-    #find the size 
-    n = len(X)
-    
-    # allocate memory
-    C = np.zeros( (n+1,n+1) )
-    
-    # set the values of the covariance, exploiting symmetry
-    for i in range(0,n):
-        for j in range (0,i+1):
-            C[i,j] = cov(X[i],X[j],r)
-            C[j,i] = C[i,j]
-    
-    # set the values of the augmentation (see matrix above)        
-    for i in range(0,n):
-        C[i,n] = -1.0
-        C[n,i] = 1.0
-    C[n,n] = 0.0
-    return C
-
-
-
-def cov_mat(X,r): 
+def cov_mat(X,r,d): 
     '''
     create and return the covariance matrix for the observations
     :param X: 
         a list of locations in space, for which we calculate covariance
     :param r:
         characteristic length scale
+    :param d: the covariance for two points that
+        are arbitrarily far apart
     '''
     
     #decide on the size of
@@ -81,18 +57,12 @@ def cov_mat(X,r):
     # set the values of the covariance, exploiting symmetry
     for i in range(0,n):
         for j in range (0,i):
-            C[i,j] = cov(X[i],X[j],r)
+            C[i,j] = cov(X[i],X[j],r,d)
             C[j,i] = C[i,j]
-        C[i,i] = cov(X[i], X[i], r)
+        C[i,i] = cov(X[i], X[i], r, d)
     return C
 
-def inv_cov(X,r):
-    '''
-    return the inverse of the covariance matrix defined above
-    '''
-    return np.linalg.inv(cov_mat(X,r))
-    
-def cov_vec(X,w,r):
+def cov_vec(X,w,r,d):
     '''
     creates a vector of covariances, between 
     X(a list of numpy arrays) and w (a numpy
@@ -103,28 +73,22 @@ def cov_vec(X,w,r):
         a specific location for which we calculate covariances
     :param r: 
         characteristic length scale
+    :param d: the covariance for two points that
+        are arbitrarily far apart
         
     returns a vector v s.t. v_i =cov(x_i,w)
     '''
     
-    return np.array( [cov(x,w,r) for x in X] )
+    return np.array( [cov(x,w,r,d) for x in X] )
 
-# def multInvCovMat( a, specs, b):
-#     '''
-#     multiply by the inverse of the covariance 
-#     '''
-#     aU  = np.dot(a, specs.U)
-#     Vtb = np.dot(specs.V,b)
-#     aUSinv = np.dot(aU,np.diag(1/specs.S))
-#     return np.dot(aUSinv, Vtb)   
-    
       
 def tychonoff_solver( U, S, V, b, reg):
     '''
-    solve Ax = b  using tychonoff regularization.
+    solve Ax = b  using tychonoff regularization or, 
+    equvalently, multiply A^{-1}v stably.
     we return the solution to the optimization problem
     x = argmin ||Ax -b||^2 + reg*||x||^2.
-    U, S, V is the SVD of A ( A = USV )
+    U, S, V is the SVD of A ( A = USV and V is NOT transposed!! )
     reg is the regularization coefficient
     :param U,S,V: the SVD of the matrix A. It holds that
         U*S*V = K (yes, V and not V*, this is what python's
@@ -140,9 +104,3 @@ def tychonoff_solver( U, S, V, b, reg):
     x = np.dot( np.transpose(V) ,  np.transpose(y) )  # x = V^t * y
     
     return x
-
-def inf_norm(s):
-    if hasattr(s, "__len__"):
-        return np.linalg.norm( np.asarray(s) , np.inf)
-    else:
-        return abs(s) 

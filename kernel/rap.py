@@ -11,9 +11,7 @@ def rapper( s, trueLL, args, kwargs ):
     # arguments for my purposes.  
 
     if len(args) + len(kwargs) == 0:
-        return trueLL(s)   
+        return float(   trueLL(s)  )   
     
-    return trueLL(s , *args , **kwargs )
     
-         
-        
+    return float(  trueLL(s , *args , **kwargs )    )
