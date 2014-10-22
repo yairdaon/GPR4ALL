@@ -6,13 +6,11 @@ Feel free to write to me about my code!
 '''
 
 import numpy as np
-from scipy import __version__ as ver
 import scipy.optimize
 
 import emcee as mc
 
 import kriging as kg 
-import gradient 
 import targets
 
 
