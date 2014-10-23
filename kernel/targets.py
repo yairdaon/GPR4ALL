@@ -16,7 +16,7 @@ def minus_exp_krig_times_sig_square(s, specs):
     '''
     
     krig , sig = kriging(s , specs)
-     
-    return -math.exp(krig)*sig*sig
+        
+    return -math.exp(krig)*sig*sig*sig*sig
     
     

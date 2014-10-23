@@ -48,7 +48,6 @@ class Test(unittest.TestCase):
         sampler = smp.Sampler( specs )
         
         # the bounds on the plot axes
-        # CHANGE THsamplerESE IF STUFF HAPPEN OUTSIDE THE FRAME
         xMin = -M
         xMax = M
         yMax = 100
@@ -62,7 +61,7 @@ class Test(unittest.TestCase):
         
         # The number of evaluations of the true likelihood
         # change this if you want a longer\shorter movie
-        nf    = 25     
+        nf    = 17     
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( x.shape )

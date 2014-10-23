@@ -11,7 +11,6 @@ import kernel.kriging as kg
 import numpy as np
 import kernel.container as cot
 import kernel.truth as truth
-import kernel.point as pt
 import kernel.aux as aux
 
 class Test(unittest.TestCase):
@@ -38,8 +37,12 @@ class Test(unittest.TestCase):
         F.append(np.array( [-2] ))
         F.append(np.array( [ 1] ))
 
-        # create the container  (the true LL is zero since it is of no importance)
-        specs = cot.Container( truth.zero , r=1.0 )
+        # create the container. we don'te use the true LL
+        specs = cot.Container( truth.const )
+        
+        # make sure the prior doesn't bother us
+        specs.set_prior( lambda x: 0.0 )
+
     
         for i in range(len(X)):
             specs.add_pair(X[i], F[i])
@@ -55,12 +58,13 @@ class Test(unittest.TestCase):
      
     def testUniform(self):
         ''' 
-        test kriging by makin sure the procedure outputs
+        test kriging by making sure the procedure outputs
         a constant 0 when it is given constant 0
         input
         '''
         
         specs = cot.Container(truth.zero , r=1.0, M=25.0)
+        specs.set_prior( lambda x: 0.0)
         
         # create locations where values of log 
         # likelihood are known
@@ -77,54 +81,7 @@ class Test(unittest.TestCase):
         self.assertTrue(    np.allclose( np.array([0]) , kg.kriging(np.array([20.0]),specs )[0] )      )
    
         
-    def testPointWithError(self):
-        '''
-        we want PointWithError to behave just like a numpy array
-        '''
-        
-        # instantiate a point
-        p = pt.PointWithError( [ 1. , 2. , 3 ] ) 
-        
-        # is it an instance?
-        self.assertTrue( isinstance( p , pt.PointWithError ))
-        
-        # default error should be 0.0
-        self.assertTrue( p.error == 0.0 )
-        
-        # reference using array indexing
-        self.assertTrue( p[0] == 1.0 )
-        
-        # length should be 3
-        self.assertTrue( len(p) == 3 )
-        
-        # can we set the variable error?
-        p.error = 3
-        self.assertTrue( p.error == 3.0 )
-        
-        # can we calculate its norm?
-        q = np.array([1,2,3])
-        self.assertTrue(    np.linalg.norm(p)  ==  np.linalg.norm(q)   )
-        
-        # does it equal a regular numpy array?
-        self.assertTrue( np.all( p == q ))
-        
-        # can we add?
-        self.assertTrue(  (p+q)[1] == 4 ) 
-        
-        # test matrix multiplication
-        A = np.random.random((3, 3))
-        self.assertTrue(  np.all( np.dot(A,p)==np.dot(A,q) )  )
-        
-        # can we call the constructor and set the error in one line?
-        p1 = pt.PointWithError( [ 0. , 0. , 0 ] , error = 2.0)
-        self.assertEqual(2.0, p1.error ) 
-
-        p2 = pt.PointWithError( [ 1. , 2. , 3 ] , 2.5)
-        self.assertEqual(2.5, p2.error ) 
-        
-        
-        
-        
+   
 
     def testCovVec(self):
         '''
@@ -140,8 +97,7 @@ class Test(unittest.TestCase):
         r = 1.0
         d = 1.0
         v = aux.cov_vec(X, w, r, d)
-        #print(v)
-    
+            
     def testTychonoffSimple(self):
         '''
         test the linear solver we use - This solver 

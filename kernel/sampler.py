@@ -69,14 +69,14 @@ class Sampler(object):
         self.nwalkers = nwalkers #150*self.ndim
         
         # number of points to start optimization. 
-        self.noptimizers = self.nwalkers
+        self.noptimizers = 5
         
         # set burn in time
         self.burn = burn #500*(self.ndim)**(1.5)
         
         # the initial set of positions are uniform  in the box [-M,M]^ndim
         self.pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
-        self.pos = ( 2*self.pos  - 1.0 )*specs.M # shift and stretch
+        self.pos = ( 2*self.pos  - 1.0 )*specs.r # shift and stretch
         self.pos = self.pos.reshape((self.nwalkers, self.ndim)) # reshape
         
         # set the initial state of the PRNG
@@ -91,7 +91,7 @@ class Sampler(object):
         
         # default decorrelation time. 
         self.decorTime = burn/2
-
+        
     def sample_one(self):
         '''
         this method returns a single sample from the current posterior
@@ -178,6 +178,8 @@ class Sampler(object):
             
             # sample a starting point
             startPoint = self.sample_one()
+            
+            #startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*self.specs.M
             result = scipy.optimize.minimize(target, startPoint, args=(self.specs,), 
                                                                 method='Powell')
             

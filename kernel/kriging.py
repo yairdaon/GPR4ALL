@@ -60,15 +60,8 @@ def kriging(s, specs):
     
     # the variance is...
     sigmaSquare =  aux.cov(0,0,r,d) - np.dot(k,lam)
-    if sigmaSquare  < 0: 
-        print("")
-        print("x = " + str(s))
-        print("sigSquare = " + str(sigmaSquare) )
-        print("condition number = " + str(specs.condition()))
-
+   
+    krig = f + specs.prior(s)
+    sig = math.sqrt( max(sigmaSquare,0) )   
     
-    
-    kriged = f + specs.prior(s)
-    std = math.sqrt( max(sigmaSquare,0) )   
-    
-    return kriged , std  
+    return krig , sig 

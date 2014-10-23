@@ -13,8 +13,8 @@ nsure_dir_xzists("Data/Movie1DFrames")
 
 # making sure user has a good version of python
 version = sys.hexversion
-if version <  33949424:
-    print("You should be using python2.6 at least. This is your version:")
+if version <  34014192:
+    print("You should be using python2.7 at least. This is your version:")
     print(sys.version)
     
 # making sure user has the right scipy

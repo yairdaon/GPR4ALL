@@ -47,10 +47,9 @@ specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=args, kwargs=kw
 
 # 1st argument - your true log-likelihood.
 
-# M is such that if ||x||_{inf} > M the log-likelihood is -inf.
-# make sure your data does not violate this restriciton.
-# if you don't want that restriction, ignore it and choose another prior by uncommenting:
-# specs.set_prior( lambda x: -20*np.linalg.norm(x)**2)
+# M determines the decay rate of your prior # if you don't want that,
+# ignore it and choose another prior by (make sure it decays to minus infinity!!):
+# specs.set_prior(  <put prior here>  )
 
 # r is the characteristic length scale. set it to what you find right or
 # use the default: 1.3

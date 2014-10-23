@@ -8,6 +8,7 @@ Feel free to write to me about my code!
 import unittest
 import numpy as np
 import os
+import math
 
 import matplotlib.pyplot as plt
 
@@ -40,7 +41,10 @@ class Test(unittest.TestCase):
         
         #     Initializations of the container object
         
-        specs = cot.Container( truth.rosenbrock_2D, M=3 )
+        specs = cot.Container( truth.rosenbrock_2D, M =5 )
+        
+        # hard prior makes the movie look much nicer
+#         specs.set_prior( lambda x: 0 if np.linalg.norm(x, np.inf ) < 5 else -np.inf   )
         M = specs.M
         
         # we know the true log-likelihood in these points
@@ -56,19 +60,30 @@ class Test(unittest.TestCase):
  
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  41   
+        nf    =  55   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
         xMin = -M
         xMax = M
-        zMax = 300
-        zMin = -1000
+        zMax = 1000
+        zMin = -7000
+
         
         # create the two meshgrids the plotter needs
-        a  = np.arange(xMin, xMax, 0.4)
-        b  = np.arange(xMin, xMax, 0.4)
+        a  = np.arange(xMin, xMax, 0.2)
+        b  = np.arange(xMin, xMax, 0.2)
         X, Y = np.meshgrid(a, b)
+        
+        # the levels for which we plot contours
+        ncontours = 400
+        levels = np.arange(ncontours)
+        levels = np.sqrt(np.sqrt(levels))
+        levels = levels*(zMax - zMin)
+        levels = levels/math.sqrt(math.sqrt(ncontours))
+        levels = levels  + zMin
+        levels = np.floor(levels)
+
         
         # we create each frame many times, so the movie is slower and easier to watch
         delay = 4
@@ -89,33 +104,39 @@ class Test(unittest.TestCase):
                     p[1] = Y[j,i]    
                     kriged[j,i] = kg.kriging( p , specs )[0]
                                 
-#             
+  
             xs = np.ravel( np.transpose( np.array( specs.X ) )[0] )
             ys = np.ravel( np.transpose( np.array( specs.X ) )[1] )
+            
+            # cap everything so it fits our frame
+            boolArr = (abs(xs) < M)*(abs(ys) < M)
+            xs = xs[boolArr]
+            ys = ys[boolArr]
             
             # create contour
             fig = plt.figure( frame )
             ax = fig.add_subplot(111) 
             
-            cs = ax.contour(X, Y, kriged, levels = np.arange(zMin , zMax , 30)  ) 
+
+            cs = ax.contour(X, Y, kriged, levels = levels  ) 
             ax.clabel(cs, fmt = '%.0f', inline = True) 
             ax.scatter(xs, ys)
-            plt.title('Contours of interpolated Rosenbrock. ' + str(frame) + ' samples. r = ' + str(specs.r) )
+            plt.title('Contours of Learned Rosenbrock. ' + str(frame) + ' samples. r = ' + str(specs.r) )
             
             # save the plot several times
             for k in range(delay):   
-                FrameFileName2 = "Data/Movie2DContourFrames/Frame" + str(frame*delay + k) + ".png"
+                FrameFileName = "Data/Movie2DContourFrames/Frame" + str(frame*delay + k) + ".png"
 
-                fig.savefig(FrameFileName2)
+                fig.savefig(FrameFileName)
 
                 if (frame*delay + k) % 10 == 0:
-                    print( "saved " +FrameFileName2 + ".  "
+                    print( "saved " +FrameFileName + ".  "
                             + str(frame*delay + k) +  " / " + str((nf+1)*delay) )
             
-#             plt.close( frame*2     )
             plt.close( frame )
 
             # IMPORTANT - we sample from the kriged log-likelihood. this is crucial!!!!
+
             sampler.learn() 
             
         

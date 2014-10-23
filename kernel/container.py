@@ -5,8 +5,6 @@ Created on May 19, 2014
 Feel free to write to me about my code!
 '''
 import numpy as np
-import copy
-
 
 import aux
 import kernel.rap as rap
@@ -37,9 +35,8 @@ class Container:
     
     :param r: the characteristic lenght scale of the covariance function
     
-    :Param M: a number. usually it is the size of the box outside of 
-        which we assume the probability is zero. We also use it to put
-        bounds on plots every once in a while
+    :Param M: a number that decides on the rate of decay of the defaault prior.
+        We also use it to put bounds on plots.
         
     :param X:
         a list of places in space for which we know the log-likelihood
@@ -80,21 +77,13 @@ class Container:
         
         # point to the true log-likelihood that we'll use
         self.trueLL = trueLL
-        
-        # set prior to uniform inside a box. Not using lambda 
-        # because Guido said so.
-        def default_prior(x):
-            if np.amax(abs(x)) > self.M:
-                return -np.Inf
-            return 0.0
-        self.prior = default_prior
-        
+            
         # parameters for the true log-likelihood
         self.args   = args
         self.kwargs = kwargs
         
         # some parameters
-        self.r = r # hyper paramenter
+        self.r = r 
         self.d = d
         self.M = M
         
@@ -104,6 +93,11 @@ class Container:
         self.X = [] # list observations... 
         self.F = [] # ...corresponding log-likelihoods
         self.Fmp = [] # F minus prior
+        
+        # set default prior.
+        def default_prior(x):
+            return -(np.linalg.norm(x)**2)
+        self.prior = default_prior
         
         # are the matrices we use ready or do we need to calculate them
         self.matricesReady = False       

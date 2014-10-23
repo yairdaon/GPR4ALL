@@ -7,8 +7,6 @@ Feel free to write to me about my code!
 import numpy as np
 import math
 
-import point
-
 def cov(x,y, r, d):
     '''
     calculate autocovariance as
@@ -25,17 +23,8 @@ def cov(x,y, r, d):
         characteristic length r
     '''
     
-    if isinstance(x , point.PointWithError):
-        if np.all(x==y):
-            return x.error  + d
-        
     temp = np.linalg.norm(x-y)
     return  d*math.exp(  -temp*temp/(2*r*r)  ) 
-
-    # if we consider noisy observations
-    
-    
-    return cov
 
 def cov_mat(X,r,d): 
     '''
