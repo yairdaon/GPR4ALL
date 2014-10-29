@@ -7,6 +7,11 @@ Feel free to write to me about my code!
 import numpy as np
 import math
 
+import emcee as mc
+
+import truth
+import kriging as kg
+
 def cov(x,y, r, d):
     '''
     calculate autocovariance as
@@ -93,3 +98,59 @@ def tychonoff_solver( U, S, V, b, reg):
     x = np.dot( np.transpose(V) ,  np.transpose(y) )  # x = V^t * y
     
     return x
+
+def rosenbrock_KL(specs ,tol = 1E-4  ):
+    '''
+    a function that calculates the KL divergence between a 
+    the exp(- rosenbrock ) probability distribution and a 
+    kriged probability distribution
+    '''
+    
+    roseNormalization = math.pi
+    nwalkers=20
+    burn=200
+    nsteps = burn*2
+    
+    # the initial set of positions are uniform  in the box [-M,M]^ndim
+    pos = np.random.rand(2 * nwalkers) #choose U[0,1]
+    pos = ( 2*pos  - 1.0 ) # shift and stretch
+    pos = pos.reshape((nwalkers, 2)) # reshape
+    
+    # set the initial state of the PRNG
+    state = np.random.get_state()
+    
+    # create the emcee sampler and let it burn in
+    sam = mc.EnsembleSampler(nwalkers, 2, truth.rosenbrock_2D)
+    
+    # burn in
+    sam.sample( iterations=burn, storechain=False)
+
+    # get the chain
+    chain = sam.flatchain()
+    lnProbChain = sam.flatlnprobability()
+    sam.sample( nsteps )
+    kullbackLiebler = 0
+    krigNormalization = 0
+    for i in range(nwalkers):
+        for t in range(nsteps):
+            w = chain[i,t,:]
+            
+            krig = kg.kriging(w, specs)
+            rose = truth.rosenbrock_2D(w)
+            assert lnProbChain[i,t] == rose , " noooo!!!"
+            
+            kullbackLiebler  -=   rose + krig
+            krigNormalization += krig/rose  
+            
+            
+    kullbackLiebler = kullbackLiebler/(nwalkers*nsteps)
+    krigNormalization = krigNormalization/(nwalkers*nsteps)  
+    
+    return kullbackLiebler +  krigNormalization/roseNormalization
+        
+        
+        
+        
+    
+    
+    

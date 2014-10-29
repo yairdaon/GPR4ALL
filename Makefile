@@ -28,8 +28,6 @@ tests:
 	clear
 	$(PYTHON) Test_Simple.py
 	$(PYTHON) Test_Plots.py
-	$(PYTHON) Test_Reproducible.py	
-	$(PYTHON) Test_Sampler.py	
 	$(PYTHON) Test_Movie1D.py
 	$(PYTHON) Test_Movie2D.py
 	$(PYTHON) Test_Gaussian.py

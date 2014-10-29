@@ -41,11 +41,9 @@ class Test(unittest.TestCase):
         
         #     Initializations of the container object
         
-        specs = cot.Container( truth.rosenbrock_2D, M =5 )
-        
-        # hard prior makes the movie look much nicer
-#         specs.set_prior( lambda x: 0 if np.linalg.norm(x, np.inf ) < 5 else -np.inf   )
-        M = specs.M
+        specs = cot.Container( truth.rosenbrock_2D )
+#         specs.set_prior( lambda x: -np.linalg.norm(x)**4   )
+       
         
         # we know the true log-likelihood in these points
         StartPoints = []
@@ -60,14 +58,15 @@ class Test(unittest.TestCase):
  
         # The number of evaluations of the true likelihood
         # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  55   
+        nf    =  90   
         
         # the bounds on the plot axes
         # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
-        xMin = -M
-        xMax = M
+
+        xMax = 4
+        xMin = -xMax
         zMax = 1000
-        zMin = -7000
+        zMin = -1000000
 
         
         # create the two meshgrids the plotter needs
@@ -76,7 +75,7 @@ class Test(unittest.TestCase):
         X, Y = np.meshgrid(a, b)
         
         # the levels for which we plot contours
-        ncontours = 400
+        ncontours = 350
         levels = np.arange(ncontours)
         levels = np.sqrt(np.sqrt(levels))
         levels = levels*(zMax - zMin)
@@ -86,7 +85,7 @@ class Test(unittest.TestCase):
 
         
         # we create each frame many times, so the movie is slower and easier to watch
-        delay = 4
+        delay = 3
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( X.shape )
@@ -109,7 +108,7 @@ class Test(unittest.TestCase):
             ys = np.ravel( np.transpose( np.array( specs.X ) )[1] )
             
             # cap everything so it fits our frame
-            boolArr = (abs(xs) < M)*(abs(ys) < M)
+            boolArr = (abs(xs) < xMax)*(abs(ys) < xMax)
             xs = xs[boolArr]
             ys = ys[boolArr]
             

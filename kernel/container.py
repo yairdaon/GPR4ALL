@@ -25,18 +25,16 @@ class Container:
         call it as less frequently as possible.
     
     :pararm prior: the prior log-likelihood. We use it so that probability
-        goes to zero nicely and we may choose not to truncate the probability
-        outside of the box of size M. By default, however, we do just that.
+        goes to zero nicely. We need to choose the prior's decay to agree 
+        with the decay of the true log-likelihood 
     
     :param args, kwargs: 
         these are the parameters of the true log-likelihood. it can be in any form,
         as long as it is one python object. The only place these parameters are used
         is when we call trueLL. It is defaulted as None.
     
-    :param r: the characteristic lenght scale of the covariance function
-    
-    :Param M: a number that decides on the rate of decay of the defaault prior.
-        We also use it to put bounds on plots.
+    :param r: 
+        the characteristic lenght scale of the covariance function
         
     :param X:
         a list of places in space for which we know the log-likelihood
@@ -68,7 +66,7 @@ class Container:
         as above, a dictionary of key word argument for the true log-likelihood
     '''
         
-    def __init__(self,trueLL,r=1.3, d=1.0 ,M=10.0, args =[] , kwargs = {} ):
+    def __init__(self,trueLL,r=1.3, d=1.0, args =[] , kwargs = {} ):
         '''
         we set many default parameters here. you may change them if you 
         are sure you understand what they do. change them using their 
@@ -85,7 +83,6 @@ class Container:
         # some parameters
         self.r = r 
         self.d = d
-        self.M = M
         
         # the regularization used in the kriging procedure
         self.reg = 100*np.finfo(np.float).eps
@@ -148,6 +145,7 @@ class Container:
         subtract this from every observation. 
         f should be defined as prior = lambda x: someFunction(x)
         '''
+         
         self.prior = prior
         for i in range(len(self.X)):
             self.Fmp[i] = self.F[i] - self.prior(self.X[i])

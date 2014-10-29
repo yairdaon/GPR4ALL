@@ -16,7 +16,10 @@ def minus_exp_krig_times_sig_square(s, specs):
     '''
     
     krig , sig = kriging(s , specs)
-        
-    return -math.exp(krig)*sig*sig*sig*sig
+    krig = min(krig,0) 
+    sig += specs.reg
+    arg = krig+ 2*math.log(sig)
+#     assert arg <500 , "arg = " + str(arg) +" krig = " + str(krig) + " sig = " + str(sig) + " log(sig) = " + str(math.log(sig)) + " s = " + str(s)
+    return -math.exp(arg)
     
     

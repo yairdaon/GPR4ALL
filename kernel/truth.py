@@ -38,9 +38,9 @@ def big_poly_1D(s):
     '''
     return -(s**6  + 3.5*s**4  - 2.5*s**3 - 12.5*s**2 + 1.5*s )
     
-def norm_2D(s):
+def norm(s):
     '''
-    some 2D log likelihood function
+    some log likelihood function
     '''
     t = np.linalg.norm(s)
     return -t*t

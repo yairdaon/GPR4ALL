@@ -34,8 +34,10 @@ class Test(unittest.TestCase):
         np.random.seed(1792)    
         
         #     Initializations of the container object
-        specs = cot.Container(truth.big_poly_1D, M =2.5)
-        M = specs.M
+        specs = cot.Container(truth.big_poly_1D )
+#         specs.set_prior( lambda x: -np.linalg.norm(x)**6)
+
+        M = 2.5
     
         # we know the true log-likelihood in these points
         StartPoints = []
@@ -57,11 +59,11 @@ class Test(unittest.TestCase):
         x = np.arange(xMin, xMax, 0.05)
         
         # we create each frame many times, so the movie is slower and easier to watch
-        delay = 5
+        delay = 4
         
         # The number of evaluations of the true likelihood
         # change this if you want a longer\shorter movie
-        nf    = 17     
+        nf    = 10     
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( x.shape )

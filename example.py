@@ -29,7 +29,7 @@ def minus_norm_squared_LL(s, *args, **kwargs):
     print("-------------------------------------------")
     print("")
     
-    return -np.linalg.norm(s)**2
+    return -4*np.linalg.norm(s)**2
         
         
             
@@ -43,8 +43,7 @@ args = [1 ,3 ,6]
 kwargs = {'hi!' : 2, 'my name is': 4, 'what?': 6}
 
 # create a container to hold everything, explanations below.
-specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=args, kwargs=kwargs)
-
+specs = cot.Container( minus_norm_squared_LL, r=2.4, args=args, kwargs=kwargs)
 # 1st argument - your true log-likelihood.
 
 # M determines the decay rate of your prior # if you don't want that,
@@ -55,8 +54,12 @@ specs = cot.Container( minus_norm_squared_LL , M=15, r=2.4, args=args, kwargs=kw
 # use the default: 1.3
 
 #If you don't want to use extra parameters, you may erase the irrelevant part:
-#specs = cot.Container( made_up_LL , M=15, r=2.4)
+#specs = cot.Container( made_up_LL   r=2.4)
 
+
+# you should give the container a prior that decays with the same
+# exponent as your function, otherwise, problems may (and will!) ensue.
+specs.set_prior( lambda x: -np.linalg.norm(x)**2)
 
 
 

@@ -54,7 +54,7 @@ class Sampler(object):
         
     '''
     
-    def __init__(self, specs, nwalkers=20, burn=500):
+    def __init__(self, specs, nwalkers=20, burn=500 , noptimizers=8):
         '''
         create an instance, create walkers, let them walk
         '''
@@ -66,13 +66,16 @@ class Sampler(object):
         self.ndim = len(specs.X[0])
             
         # set number of walkers
-        self.nwalkers = nwalkers #150*self.ndim
+        self.nwalkers = nwalkers 
         
         # number of points to start optimization. 
-        self.noptimizers = 5
+        self.noptimizers = noptimizers
         
         # set burn in time
-        self.burn = burn #500*(self.ndim)**(1.5)
+        self.burn = burn 
+        
+        # the first decorrelation time. 
+        self.decorTime = burn
         
         # the initial set of positions are uniform  in the box [-M,M]^ndim
         self.pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
@@ -89,8 +92,7 @@ class Sampler(object):
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
         
-        # default decorrelation time. 
-        self.decorTime = burn/2
+       
         
     def sample_one(self):
         '''
@@ -148,6 +150,9 @@ class Sampler(object):
         '''   
         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
                                                     self.pos, nsteps, self.state ) 
+        
+        # update the decorrelation time
+        self.decorTime = 2*max(self.sam.get_autocorr_time())
          
 
     def learn(self):

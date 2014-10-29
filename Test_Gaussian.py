@@ -45,6 +45,7 @@ class Test(unittest.TestCase):
         
         # create an instance of the container
         specs = cot.Container(truth.gaussian_1D)
+        specs.set_prior( lambda x: -np.linalg.norm(x)**2)
 
         # use one initial point        
         specs.add_point( np.array([0.0]) )

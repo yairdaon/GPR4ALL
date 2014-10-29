@@ -89,14 +89,16 @@ class Test(unittest.TestCase):
         np.random.seed( 1243 )
         
         # create the container object
-        specs = cot.Container( truth.double_well_1D , M=3)
+        specs = cot.Container( truth.double_well_1D)
         
-        # set prior loglikelihood to exponential
+        # note that this prior DOES NOT decay like the 
+        # true LL. still, the plot of the likelihood looks good
         specs.set_prior( lambda x: -x*x )
        
         # quick setup
-        specs.add_point( specs.M*2*np.ones(1)/3)
-        specs.add_point(-specs.M*2*np.ones(1)/3)
+        pt = 2*np.ones(1)
+        specs.add_point( pt)
+        specs.add_point(-pt)
 
         # create sampler...
         sampler = smp.Sampler ( specs )
@@ -106,7 +108,8 @@ class Test(unittest.TestCase):
             sampler.learn() # ... sample, incorporate into data set, repeat k times.
    
         # allocating memory
-        x = np.arange(-specs.M, specs.M, 0.05)
+        M = 4
+        x = np.arange(-M, M, 0.05)
         n = len(x)
         f = np.zeros( n )
         true = np.zeros( n )

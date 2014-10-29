@@ -12,12 +12,13 @@ import numpy as np
 import kernel.container as cot
 import kernel.truth as truth
 import kernel.aux as aux
+import kernel.sampler as smp
 
 class Test(unittest.TestCase):
     '''
     assorted simple tests. These tests should never fail.
     If they do, something really bad has happened.
-    '''
+    '''   
     
     def testSymmetric(self):
         ''' 
@@ -63,7 +64,7 @@ class Test(unittest.TestCase):
         input
         '''
         
-        specs = cot.Container(truth.zero , r=1.0, M=25.0)
+        specs = cot.Container( truth.zero )
         specs.set_prior( lambda x: 0.0)
         
         # create locations where values of log 
@@ -155,8 +156,101 @@ class Test(unittest.TestCase):
         # compare solutions
         self.assertTrue(np.allclose(x1, y1))
         self.assertTrue(np.allclose(x2, y2))
-        self.assertTrue(np.allclose(x3, y3))
+        self.assertTrue(np.allclose(x3, y3))     
         
+        
+        
+            
+        
+    def testSampler(self):
+        '''
+        here we sample from the sampler. We choose to learn from
+        the samples.
+        '''
+
+        # creating the container object...
+        specs = cot.Container( truth.rosenbrock_2D )
+        specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+
+        specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
+        specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
+    
+        sampler = smp.Sampler( specs )
+        sampler.learn()
+        sampler.learn()
+        self.specs = specs
+        self.sampler = sampler                                                 
+                              
+        self.assertEqual( len( self.specs.X )  , 4 )
+        self.assertEqual( len(self.specs.X[0]) , len(self.specs.X[1]) )             
+        self.assertEqual( len(self.specs.X[0]) , len(self.specs.X[2]) )   
+        
+        
+        
+         
+    def testReproducibility(self):
+        '''
+        tests that using the same seed, we can reproduce results.
+        note: this is what we did in the setUp method above EXCEPT
+        the last two lines.
+        '''
+
+        def rep_func():
+            np.random.seed(567)
+        
+
+            # creating the container object...
+            specs = cot.Container( truth.rosenbrock_2D )
+            specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+
+            specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
+            specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
+        
+            sampler = smp.Sampler( specs )
+            sampler.learn()
+            sampler.learn()
+         
+            # now we put the sample in y
+            return  sampler.sample_one()   
+       
+        # and compare
+        self.assertTrue( np.all(rep_func() == rep_func() )  ) 
+        
+        
+
+    def testReproducibilityFails(self):
+        '''
+        tests that using different seeds, we cannot expect to
+        reproduce results. 
+        note: this is what we did in the testReproducibility method 
+        above EXCEPT for the first line and the last.
+        '''
+        
+        def non_rep_func():
+            
+            # the seed is now commented
+            #np.random.seed(567)
+        
+
+            # creating the container object...
+            specs = cot.Container( truth.rosenbrock_2D )
+            specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+
+            specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
+            specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
+        
+            sampler = smp.Sampler( specs )
+            sampler.learn()
+            sampler.learn()
+         
+            # now we put the sample in y
+            return  sampler.sample_one()   
+       
+        # compare
+        self.assertFalse(  np.all( non_rep_func() == non_rep_func() )  )  
+        
+        
+         
     
 
 
