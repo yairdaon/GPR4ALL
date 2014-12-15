@@ -8,6 +8,7 @@ Feel free to write to me about my code!
 import unittest
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 import kernel.kriging as kg
 import kernel.container as cot
@@ -36,7 +37,7 @@ class Test(unittest.TestCase):
         specs = cot.Container( truth.sin_1D  )
         
         # set the prior so the pics look nice
-        specs.set_prior( lambda x: -x*x/20)
+        specs.set_prior( lambda x: -x*x/20.0 , lambda x: -x/10.0)
         
         for v in X: 
             specs.add_point(v)#... with (point, value) pair...
@@ -56,11 +57,12 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            v = kg.kriging(x[j] ,specs) 
-            f[j] = v[0] # set the interpolant
-            upper[j] = v[0] + 1.96*v[1] # set the upper bound
-            lower[j] = v[0] - 1.96*v[1] # set lower bound
-        
+            krig , sigSqr, _, _ = kg.kriging(x[j] ,specs, True) 
+            f[j] = krig # set the interpolant
+            sig = math.sqrt(sigSqr)
+            upper[j] = krig + 1.96*sig # set the upper bound
+            lower[j] = krig - 1.96*sig # set lower bound
+
         # do all the plotting here
         curve1  = plt.plot(x, f, label = "kriged value")
         curve2  = plt.plot(x, upper, label = "1.96 standard deviations")
@@ -89,11 +91,11 @@ class Test(unittest.TestCase):
         np.random.seed( 1243 )
         
         # create the container object
-        specs = cot.Container( truth.double_well_1D)
+        specs = cot.Container ( truth.double_well_1D )
         
         # note that this prior DOES NOT decay like the 
         # true LL. still, the plot of the likelihood looks good
-        specs.set_prior( lambda x: -x*x )
+        specs.set_prior( lambda x: -x*x , lambda x: -2*x)
        
         # quick setup
         pt = 2*np.ones(1)
@@ -119,8 +121,8 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            v = kg.kriging(x    [j] , specs) 
-            f[j] =  (v[0]) # set the interpolant
+            krig = kg.kriging(x    [j] , specs) 
+            f[j] =  (krig) # set the interpolant
             prior[j] = specs.prior(x[j])   # set the limiting curve
             true[j]  = specs.trueLL( x[j])  
         

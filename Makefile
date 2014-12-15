@@ -26,7 +26,7 @@ ALL_SOURCES = $(KERNEL_SOURCES) $(TEST_SOURCES) Makefile README
 
 tests:
 	clear
-	$(PYTHON) Test_Simple.py
+	$(PYTHON) Test_No_Graphics.py
 	$(PYTHON) Test_Plots.py
 	$(PYTHON) Test_Movie1D.py
 	$(PYTHON) Test_Movie2D.py

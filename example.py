@@ -59,7 +59,7 @@ specs = cot.Container( minus_norm_squared_LL, r=2.4, args=args, kwargs=kwargs)
 
 # you should give the container a prior that decays with the same
 # exponent as your function, otherwise, problems may (and will!) ensue.
-specs.set_prior( lambda x: -np.linalg.norm(x)**2)
+specs.set_prior( lambda x: -np.linalg.norm(x)**2 , lambda x: -2*x)
 
 
 
@@ -77,7 +77,7 @@ specs.set_prior( lambda x: -np.linalg.norm(x)**2)
 x1 = np.array( [2 ,3 ])
 #... its log-likelihood ...
 f1 = -13
-# and add both to the data set
+# ...add both to the data set.
 specs.add_pair(x1, f1) 
 
 

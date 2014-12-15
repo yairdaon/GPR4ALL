@@ -45,7 +45,7 @@ class Test(unittest.TestCase):
         
         # create an instance of the container
         specs = cot.Container(truth.gaussian_1D)
-        specs.set_prior( lambda x: -np.linalg.norm(x)**2)
+        specs.set_prior( lambda x: -np.linalg.norm(x)**2 , lambda x: -2*x)
 
         # use one initial point        
         specs.add_point( np.array([0.0]) )
@@ -53,7 +53,7 @@ class Test(unittest.TestCase):
         # create the sampler
         sampler = smp.Sampler ( specs )
         
-        k =  22 # ...decide how many initial points we take to resolve the log-likelihood
+        k =  11 # ...decide how many initial points we take to resolve the log-likelihood
         for j in range(0,k): 
             print( "Initial samples " + str(j+1) + " of " + str(k))
             sampler.learn() # ... sample, incorporate into data set, repeat k times.
@@ -65,7 +65,7 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging 
-            f[j] =  kg.kriging(x[j] , specs)[0]  
+            f[j] =  kg.kriging(x[j] , specs)
             
         
         # do all the plotting here
@@ -87,9 +87,9 @@ class Test(unittest.TestCase):
         numSamples =  2000
         
         # allocate memory for the data
-        samples = np.zeros(numSamples)
+        samples   = np.zeros(numSamples)
         batchSize = sampler.nwalkers
-        batch = np.zeros(batchSize)
+        batch     = np.zeros(batchSize)
         
         # sample n points from the kriged posterior log likelihood
         print( "taking " + str(numSamples) +  " samples from the posterior:")
@@ -112,7 +112,7 @@ class Test(unittest.TestCase):
         # the histogram of the data with histtype='step'
         _, _, patches = P.hist(samples, 30, normed=1, histtype='stepfilled')
         P.setp(patches, 'facecolor', 'g', 'alpha', 0.75)
-        P.title(str(n) + " samples from the posterior likelihood interpolating a Gaussian")
+        P.title(str(numSamples) + " samples from the posterior likelihood interpolating a Gaussian")
         P.savefig("graphics/Test_Gaussian: Posterior Histogram")
         P.close()
     

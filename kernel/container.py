@@ -8,6 +8,7 @@ import numpy as np
 
 import aux
 import kernel.rap as rap
+import kernel.targets as targets
 
 class Container:   
     '''
@@ -92,9 +93,8 @@ class Container:
         self.Fmp = [] # F minus prior
         
         # set default prior.
-        def default_prior(x):
-            return -(np.linalg.norm(x)**2)
-        self.prior = default_prior
+        self.prior = lambda x: -(np.linalg.norm(x)**2)
+        self.gradPrior = lambda x: -2*x
         
         # are the matrices we use ready or do we need to calculate them
         self.matricesReady = False       
@@ -139,7 +139,7 @@ class Container:
         # parameters changed, so we need to recalculate stuff
         self.matricesReady = False
     
-    def set_prior(self ,prior):
+    def set_prior(self ,prior ,grad):
         '''
         this is the log likelihood of the prior. we simply 
         subtract this from every observation. 
@@ -147,6 +147,7 @@ class Container:
         '''
          
         self.prior = prior
+        self.gradPrior = grad
         for i in range(len(self.X)):
             self.Fmp[i] = self.F[i] - self.prior(self.X[i])
                           

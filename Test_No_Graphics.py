@@ -6,20 +6,24 @@ Feel free to write to me about my code!
 '''
 
 import unittest
+import numpy as np
 
 import kernel.kriging as kg
-import numpy as np
 import kernel.container as cot
-import kernel.truth as truth
 import kernel.aux as aux
 import kernel.sampler as smp
+import kernel.truth as truth
+
+import helper.rosenbrock as rose
+
 
 class Test(unittest.TestCase):
     '''
-    assorted simple tests. These tests should never fail.
-    If they do, something really bad has happened.
+    assorted tests with varying levels of simplicity.
+    These tests are relatively fast to run and produce
+    no graphical output, unlike the other tests.
     '''   
-    
+        
     def testSymmetric(self):
         ''' 
         giving the kriging procedure symmetric values, 
@@ -39,10 +43,10 @@ class Test(unittest.TestCase):
         F.append(np.array( [ 1] ))
 
         # create the container. we don'te use the true LL
-        specs = cot.Container( truth.const )
+        specs = cot.Container( truth.zero )
         
         # make sure the prior doesn't bother us
-        specs.set_prior( lambda x: 0.0 )
+        specs.set_prior( lambda x: 0.0, lambda x: 0.0  )
 
     
         for i in range(len(X)):
@@ -52,7 +56,7 @@ class Test(unittest.TestCase):
         s = np.array( [0, 0] )
         
         # kriging for this center ...
-        b = kg.kriging(s, specs)[0]
+        b = kg.kriging(s, specs)
         
         # ... should be zero, by symmetry
         self.assertAlmostEqual(b, 0, 14) # 15 is the number of decimal digits we consider
@@ -65,7 +69,7 @@ class Test(unittest.TestCase):
         '''
         
         specs = cot.Container( truth.zero )
-        specs.set_prior( lambda x: 0.0)
+        specs.set_prior( lambda x: 0.0, lambda x: 0.0  )
         
         # create locations where values of log 
         # likelihood are known
@@ -79,7 +83,7 @@ class Test(unittest.TestCase):
         for x in X:
             specs.add_point( x )        
 
-        self.assertTrue(    np.allclose( np.array([0]) , kg.kriging(np.array([20.0]),specs )[0] )      )
+        self.assertTrue(    np.allclose( np.array([0]) , kg.kriging(np.array([20.0]),specs ) )      )
    
         
    
@@ -109,11 +113,13 @@ class Test(unittest.TestCase):
 
         
         A = np.array( [[ 1, 2] , [ 3 ,4] ])
-        U,  S,  V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
+        
+        specs = cot.Container(truth.zero)
+        specs.U,  specs.S,  specs.V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
+        specs.reg = 100*np.finfo(np.float).eps
         b = np.array([1 , 1])
-        reg = 100*np.finfo(np.float).eps
 
-        svdSol = aux.tychonoff_solver( U, S, V, b, reg )
+        svdSol = aux.tychonoff_solver( specs, b )
         trueSol = np.array([ -1 , 1])
         self.assertTrue(np.allclose(svdSol, trueSol))
 
@@ -132,21 +138,27 @@ class Test(unittest.TestCase):
         # create some random matrix
         A = np.random.rand(50,50)
         
+        # this is really a mocked container object.
+        # it holds no data, only what we put in it
+        specs = cot.Container(truth.zero)
+        
         # get SVD
-        U,  S,  V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
+        specs.U,  specs.S,  specs.V = np.linalg.svd( A, full_matrices= True, compute_uv=True)
+        
+        # the regularization factor we ususlly use in the solver
+        specs.reg = 100*np.finfo(np.float).eps
         
         # create three random target vectors
         b1 = np.array( np.random.rand(1,50) )
         b2 = np.array( np.random.rand(50,1) )
         b3 = np.array( np.random.rand(50) )
         
-        # the regularization factor we ususlly use in the solver
-        reg = 100*np.finfo(np.float).eps
+        
         
         # solve using our solver
-        x1 = aux.tychonoff_solver( U, S, V, b1, reg )
-        x2 = aux.tychonoff_solver( U, S, V, b2, reg )
-        x3 = aux.tychonoff_solver( U, S, V, b3, reg )
+        x1 = aux.tychonoff_solver( specs, b1 )
+        x2 = aux.tychonoff_solver( specs, b2 )
+        x3 = aux.tychonoff_solver( specs, b3 )
         
         # solve using standard package
         y1 = np.linalg.solve(A, np.ravel(b1))
@@ -169,8 +181,7 @@ class Test(unittest.TestCase):
         '''
 
         # creating the container object...
-        specs = cot.Container( truth.rosenbrock_2D )
-        specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+        specs = cot.Container( rose.rosenbrock_2D )
 
         specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
         specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
@@ -200,8 +211,7 @@ class Test(unittest.TestCase):
         
 
             # creating the container object...
-            specs = cot.Container( truth.rosenbrock_2D )
-            specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+            specs = cot.Container( rose.rosenbrock_2D )
 
             specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
             specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
@@ -233,8 +243,7 @@ class Test(unittest.TestCase):
         
 
             # creating the container object...
-            specs = cot.Container( truth.rosenbrock_2D )
-            specs.set_prior( lambda x: -np.linalg.norm(x)**4)
+            specs = cot.Container( rose.rosenbrock_2D )
 
             specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
             specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
@@ -248,11 +257,105 @@ class Test(unittest.TestCase):
        
         # compare
         self.assertFalse(  np.all( non_rep_func() == non_rep_func() )  )  
+
+    def testGradientKrig(self):
+        '''
+        check that the gradient of the kriged function
+        is calculated correctly (ok, approximately), 
+        first in 1D, then in 2D
+        '''
         
+        r =1.3 
+        d = 2.28
+        dx = 1e-8
         
-         
+        #1D:
+        # container setup
+        specs = cot.Container( truth.big_poly_1D , r=r, d=d)
+        specs.add_point( np.array([ 1.0]) )
+        specs.add_point( np.array([-1.0]) )
+        specs.set_matrices()  
+        
+        # x is where derivative is calculated
+        x         =    np.array( [ 0.47])
+        
+        # the derivative calculated using calculus differentiation
+        analytic  =    kg.kriging( x, specs, True)[2]
+        
+        # derivative calculated using finite differences
+        numeric   = ( kg.kriging(x+dx, specs) - kg.kriging(x-dx, specs) )/(2*dx)
+        
+        # should equal (ok, almost equal)
+        self.assertAlmostEqual(numeric , analytic, 6)
+        
+        #2D:
+        # container setup
+        specs = cot.Container( rose.rosenbrock_2D , r=r, d=d)
+        specs.add_point( np.array([ 1.0 , 2.11]) )
+        specs.add_point( np.array([ 5.0 ,-4.3 ]) )
+        specs.add_point( np.array([-2.0 , 0.22]) )
+        specs.set_matrices() 
+        
+        # x is where we calculate the derivative 
+        x = np.array([2.3 , 1.1])
+        krig = kg.kriging(x, specs)
+        
+        # tthe derivative using the rules of calculus
+        analytic =  kg.kriging( x, specs ,True)[2]
+        
+        # derivative using finite differences
+        numeric = np.zeros(2)
+        numeric[0]  = (  kg.kriging(x + np.array([dx,0]),specs) - krig  )/dx  
+        numeric[1]  = (  kg.kriging(x + np.array([0,dx]),specs) - krig  )/dx  
+        
+        # should equal (almost
+        self.assertTrue(np.allclose( analytic, numeric) )
     
 
+    def testGradientSigSqr(self):
+        '''
+        check that the gradient of the kriged variance
+        is calculated correctly (ok, approximately), 
+        first in 1D, then in 2D. See the comments in 
+        testGradientKrig, since these methods are 
+        practically the same (different calculations
+        carried out under the hood, though).
+        '''
+        
+        r =1.3 
+        d = 2.28
+        dx = 1e-7
+        
+        #1D:
+        # container setup
+        specs = cot.Container( truth.big_poly_1D , r=r, d=d)
+        specs.add_point( np.array([ 1.0]) )
+        specs.add_point( np.array([-1.0]) )
+        specs.set_matrices()  
+        
+        x         =    np.array( [ 0.47])
+        analytic  =    kg.kriging(x,  specs, True)[3]
+        numeric   = ( kg.kriging(x+dx, specs, True)[1] - kg.kriging(x-dx, specs, True)[1] )/(2*dx)
+        self.assertAlmostEqual(numeric , analytic, 8)
+        
+        
+        
+        #2D. Set the container
+        specs = cot.Container( rose.rosenbrock_2D , r=r, d=d)
+        specs.add_point( np.array([ 1.0 , 2.11]) )
+        specs.add_point( np.array([ 5.0 ,-4.3 ]) )
+        specs.add_point( np.array([-2.0 , 0.22]) )
+        specs.set_matrices() 
+         
+        numeric = np.zeros(2)
+        x = np.array([2.3 , 1.1])
+        analytic  =    kg.kriging(x,  specs, True)[3]
+        
+        # simple divided differences
+        numeric[0]  = (  kg.kriging(x + np.array([dx,0]),specs, True)[1] - kg.kriging(x + np.array([-dx,0]),specs, True)[1]  )/(2*dx)  
+        numeric[1]  = (  kg.kriging(x + np.array([0,dx]),specs, True)[1] - kg.kriging(x + np.array([0,-dx]),specs, True)[1]  )/(2*dx)  
+        self.assertTrue(np.allclose( analytic, numeric) )         
+           
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

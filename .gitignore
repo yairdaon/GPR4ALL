@@ -11,3 +11,5 @@ Data/**/*.png
 Data/**/*.mpg
 .pydevproject
 .project
+Test_KL.py
+Test_Rosenbrock.py

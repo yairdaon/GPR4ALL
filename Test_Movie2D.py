@@ -11,12 +11,18 @@ import os
 import math
 
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
+try:
+   import cPickle as pickle
+except:
+   import pickle
 
-import kernel.kriging as kg
+from kernel.kriging import kriging
 import kernel.sampler as smp
-import kernel.truth as truth
 import kernel.container as cot
-
+import helper.rosenbrock as rose
+import kernel.truth as truth
+import kernel.targets as targets
 
 class Test(unittest.TestCase):
     '''
@@ -25,6 +31,118 @@ class Test(unittest.TestCase):
     this unit test creates a movie. run it and see for yourself!!
     '''
 
+    def setUp(self):
+        '''
+        define helper methods and stuff
+        '''
+        # for reproducibility
+        np.random.seed(1792) 
+        
+        # tell the OS to prepare for the movie and the frames
+        os.system("rm -f Data/Movie2DContourFrames/*.png")
+        
+        def make_movie_frame( sample , frame, nPoints, LLlevels , intLevels,  kriged, integrand, pts, X, Y, KL, M, nSamp, desc, delay ):
+            '''
+            well, create and save a movie frame. mostly 
+            boring code.
+            '''      
+            xs = np.ravel( np.transpose( np.array( pts ) )[0] )
+            ys = np.ravel( np.transpose( np.array( pts ) )[1] )
+             
+            # cap everything so it fits our frame
+            boolArr = (abs(xs) < M)*(abs(ys) < M)
+            xs = xs[boolArr]
+            ys = ys[boolArr]
+            
+            KL      = np.asarray( KL ) 
+            kl      =  KL[: , 0 ]
+            lowBar  =  KL[: , 1 ]
+            highBar =  KL[: , 2 ]
+            sumTerm =  KL[: , 3 ]
+            lowSum  =  KL[: , 4 ]
+            highSum =  KL[: , 5 ]
+            xp      =  KL[: , 6 ]
+            lowExp  =  KL[: , 7 ]
+            highExp =  KL[: , 8 ]
+            uniKl   =  KL[: , 9 ]
+            
+            # create plot
+            fig = plt.figure( figsize=(30, 15) )
+            fig.suptitle( 'Total of ' + str(len(pts)) + ' LL evaluations. KL bars w\ ' + str(nSamp) 
+                          + ' samples. \nOptimizing ' + desc , fontsize=22, verticalalignment = 'top') 
+            
+            gs = gridspec.GridSpec(6, 8)
+            ax1 = plt.subplot(gs[0:4, 0:4  ])
+            ax5 = plt.subplot(gs[0:4, 4:8  ])
+            ax2 = plt.subplot(gs[4:5  , 0:2  ])
+            ax6 = plt.subplot(gs[4:5  , 2:4  ])
+            ax3 = plt.subplot(gs[4:5  , 4:6  ])
+            ax4 = plt.subplot(gs[4:5  , 6:8  ])
+            
+            
+            # create big contour plot    
+            cs1 = ax1.contour(X, Y, kriged, levels = LLlevels  ) 
+            ax1.clabel(cs1, fmt = '%.0f', inline = False) 
+            ax1.scatter(xs, ys)
+            ax1.set_title('Learned Rosenbrock Contours and LL evaluations.' , fontsize=22)
+            
+            cs5 = ax5.contour(X, Y, integrand, levels = intLevels  ) 
+            ax5.clabel(cs5, fmt = '%.0f', inline = False) 
+            ax5.set_title('Contours of KL integrand' , fontsize=22)
+            
+            ax2.scatter(range(len(kl)),kl)
+            ax2.errorbar(range(len(kl)), kl ,yerr=[lowBar, highBar], linestyle="None")
+            ax2.set_ylim([-150,300])
+            ax2.set_xlim([-1,nPoints+1])
+            ax2.set_title('KL div', fontsize=22)
+            
+            ax3.scatter(range(len(sumTerm)),sumTerm)
+            ax3.errorbar(range(len(sumTerm)), sumTerm ,yerr=[lowSum , highSum], linestyle="None")
+            ax3.set_ylim([-150,300])
+            ax3.set_xlim([-1,nPoints+1])
+            ax3.set_title('sum term w\ bars', fontsize=22)
+            
+            ax4.scatter(range(len(xp )),xp )
+            ax4.errorbar(range(len(xp)), xp  ,yerr=[lowExp , highExp], linestyle="None")
+            ax4.set_ylim([-150,300])
+            ax4.set_xlim([-1,nPoints+1])
+            ax4.set_title('log(sum exp) term w\ bars' , fontsize=22)
+            
+            ax6.scatter (range(len(uniKl)), uniKl)
+            ax6.set_ylim([-150,300])
+            ax6.set_xlim([-1,nPoints+1])
+            ax6.set_title('uniform estimate of KL div' , fontsize=22)
+         
+            # create the frame
+            for _ in range(delay):
+                
+                if frame % 10 == 0:
+                    print("Saved frame " + str(frame) + " of " +str(nPoints*delay))
+                
+                # save the plot              
+                fig.savefig( "Data/Movie2DContourFrames/Frame" + str(frame) + ".png" )  
+                frame = frame + 1                    
+             
+            plt.close()
+            return frame
+        
+        def getLevels(ncontours, zMin, zMax):
+            '''
+            create levels for the contour plots
+            '''
+               
+            # the levels for which we plot contours
+            levels = np.arange(ncontours)
+            levels = np.sqrt(np.sqrt(levels))
+            levels = levels*(zMax - zMin)
+            levels = levels/math.sqrt(math.sqrt(ncontours))
+            levels = levels  + zMin
+            levels = np.floor(levels)
+            return levels             
+
+        self.getLevels = getLevels
+        self.make_movie_frame = make_movie_frame
+           
     def testMovie2D(self):
         '''
         create a 2D movie, based on the data we put in the container object 
@@ -32,125 +150,91 @@ class Test(unittest.TestCase):
         since this is a 2D running for lots of points might take a while
         '''
         
-        # for reproducibility
-        np.random.seed(1792) 
+            
+        # parameters to play with
+        nSamples  = 50000   # number of samples we use for KL
+        maxiter   = 20000   # max number of optimization steps
+        nPoints   = 45     # The number of evaluations of the true likelihood
+        delay     = 3       # number of copies of each frame
+        M         = 6       # bound on the plot axes
+        LLlevels  = self.getLevels(350 , -1e6 , 1e4) # levels of log likelihood contours
+        intLevels = np.concatenate([np.arange(0,4,0.8),
+                             np.arange(5,50,15),  np.arange(50,550,250)] )  # levels of integrand contours
+        delta     = 0.1 # grid for the contour plots
         
-        # tell the OS to prepare for the movie and the frames
-        os.system("rm -f Data/Movie2DSurfaceFrames/*.png") 
-        os.system("rm -f Data/Movie2DContourFrames/*.png")     
         
-        #     Initializations of the container object
+        # initialize container and sampler
+        specs = cot.Container( rose.rosenbrock_2D )
+        n = 1
+        for i in range( -n , n+1 ):
+            for j in range( -n, n+1 ):
+                specs.add_point(np.array( [2*i , 2*j ] ))
+        sampler = smp.Sampler( specs , target = targets.atan_sig , maxiter = maxiter )
         
-        specs = cot.Container( truth.rosenbrock_2D )
-#         specs.set_prior( lambda x: -np.linalg.norm(x)**4   )
+        
+        # memory allocations. constants etc
+        KL = [] # create list for KL div and its error bars
+        a  = np.arange(-M, M, delta)
+        X, Y = np.meshgrid(a , a)         # create two meshgrid
+        form = X.shape
+        feedX = np.ravel(X)
+        feedY = np.ravel(Y)
+        frame = 1   
+        desc = sampler.target.desc
+        locRos    = lambda x,y: rose.rosenbrock_2D( (x,y) )
+        locKrig   = lambda x,y: kriging( (x,y) , specs)
+
+        
+        # create frames for the movie
+        for sample in range (nPoints+1):
+            
+            # get the KL divergence estimate and error bars
+            tup = rose.rosenbrock_KL(specs, nSamp=nSamples)   
+            
+            # the kriged surface
+            kriged     = np.reshape( np.asarray(map( locKrig , feedX , feedY)) , form )
+            
+            # the true rosenbrock log likelihood
+            rosen      = np.reshape( np.asarray(map( locRos  , feedX , feedY)) , form )
+            
+            # the integrand (contour plot on left)
+            integrand  = np.reshape( np.exp(rosen)*(rosen - kriged)    , form )
        
-        
-        # we know the true log-likelihood in these points
-        StartPoints = []
-        StartPoints.append( np.array( [ 0 , 0 ] ) )
-        StartPoints.append( np.array( [0.5,1.0] ) )
-        
-        for point in StartPoints:
-            specs.add_point( point )
-
-        # keep the container in scope so we can use it later
-        sampler = smp.Sampler( specs )
- 
-        # The number of evaluations of the true likelihood
-        # CHANGE THIS FOR A LONGER MOVIE!!!
-        nf    =  90   
-        
-        # the bounds on the plot axes
-        # CHANGE THIS IF STUFF HAPPEN OUTSIDE THE MOVIE FRAME
-
-        xMax = 4
-        xMin = -xMax
-        zMax = 1000
-        zMin = -1000000
-
-        
-        # create the two meshgrids the plotter needs
-        a  = np.arange(xMin, xMax, 0.2)
-        b  = np.arange(xMin, xMax, 0.2)
-        X, Y = np.meshgrid(a, b)
-        
-        # the levels for which we plot contours
-        ncontours = 350
-        levels = np.arange(ncontours)
-        levels = np.sqrt(np.sqrt(levels))
-        levels = levels*(zMax - zMin)
-        levels = levels/math.sqrt(math.sqrt(ncontours))
-        levels = levels  + zMin
-        levels = np.floor(levels)
-
-        
-        # we create each frame many times, so the movie is slower and easier to watch
-        delay = 3
-        
-        # allocate memory for the arrays to be plotted
-        kriged = np.zeros( X.shape )
-        
-        # allocate a two dimensional point, for which we calculate kriged value
-        p = np.zeros(2)
-        
-        # create frames for the ffmpeg programs
-        for frame in range (nf+1):
-
-            # create the kriged curve 
-            for j in range(len(a)):
-                for i in range(len(b)):
-                    p[0] = X[j,i]
-                    p[1] = Y[j,i]    
-                    kriged[j,i] = kg.kriging( p , specs )[0]
-                                
-  
-            xs = np.ravel( np.transpose( np.array( specs.X ) )[0] )
-            ys = np.ravel( np.transpose( np.array( specs.X ) )[1] )
+            # estimate of log(Z) by using the grid with which we plotted    
+            logZ = math.log( np.sum( np.exp(kriged)) ) + 2*math.log(delta)
             
-            # cap everything so it fits our frame
-            boolArr = (abs(xs) < xMax)*(abs(ys) < xMax)
-            xs = xs[boolArr]
-            ys = ys[boolArr]
+            # estimate of the KL divergence, from the grid we used for plotting
+            uniKL = delta*delta*np.sum(integrand) + logZ
             
-            # create contour
-            fig = plt.figure( frame )
-            ax = fig.add_subplot(111) 
+            # the value of KL integrand at every point on the grid
+            integrand = integrand + logZ
             
-
-            cs = ax.contour(X, Y, kriged, levels = levels  ) 
-            ax.clabel(cs, fmt = '%.0f', inline = True) 
-            ax.scatter(xs, ys)
-            plt.title('Contours of Learned Rosenbrock. ' + str(frame) + ' samples. r = ' + str(specs.r) )
+            # add this to the other estimates
+            tup.append( uniKL )
+            KL.append( tup  )   
             
-            # save the plot several times
-            for k in range(delay):   
-                FrameFileName = "Data/Movie2DContourFrames/Frame" + str(frame*delay + k) + ".png"
-
-                fig.savefig(FrameFileName)
-
-                if (frame*delay + k) % 10 == 0:
-                    print( "saved " +FrameFileName + ".  "
-                            + str(frame*delay + k) +  " / " + str((nf+1)*delay) )
+            print("Here's one problem - the log of the normalization constants don't agree.")         
+            print(tup[6])
+            print(logZ)
             
-            plt.close( frame )
+            # make the frames
+            frame =  self.make_movie_frame( sample, frame , nPoints, LLlevels, intLevels ,
+                                            kriged, integrand, specs.X, X, Y, KL, M, nSamples, desc, delay)
 
-            # IMPORTANT - we sample from the kriged log-likelihood. this is crucial!!!!
-
+            # learn a new point and incorporate it and save
             sampler.learn() 
-            
-        
         
 #         after the test was run - we create the movie.
 #         you need ffmpeg to create the movie from the frames python saves 
         
+
         # delete previous movie
         os.system("rm -f graphics/Movie2DContour.mpg")     
         
         # create new movie 
         os.system("ffmpeg -i Data/Movie2DContourFrames/Frame%d.png graphics/Movie2DContour.mpg") 
         
-
-            
+               
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

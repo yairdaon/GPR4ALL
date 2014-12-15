@@ -5,11 +5,16 @@ Created on Apr 29, 2014
 Feel free to write to me about my code!
 '''
 
-import numpy as np
-import math
-import aux
+from numpy import einsum as einsum
+from numpy import array as array
+from numpy import ravel as ravel
+from numpy import asarray as asarray
 
-def kriging(s, specs):
+from aux import tychonoff_solver as solver
+from aux import cov as cov
+from aux import cov_vec as cov_vec
+
+def kriging(s, specs , gradients=False):
     '''
     use algortihm 2.1 from page 19 of the book "Gaussian
     Processes for Machine Learning" by Rasmussen and Williams.
@@ -20,7 +25,7 @@ def kriging(s, specs):
     
     here this is interpreted as a log-likelihood \ log-probability
     
-    according to our way of modelling the unknown log-likelihood, we 
+    according to our way of modeling the unknown log-likelihood, we 
     believe that the log-likelihood at x is a random variable distributed 
     normally N(kriged, std^2)
     
@@ -41,27 +46,38 @@ def kriging(s, specs):
    
     # unpack the variables
     X = specs.X
-    y = np.array( specs.Fmp ) # F minus prior 
-    y = np.ravel(y)
+    y = array( specs.Fmp ) # F minus prior 
+    y = ravel(y)
 
     # parameters
     r = specs.r
     d = specs.d
-    reg = specs.reg
     
     # create the covariance vector:
-    k = aux.cov_vec(X, s, r, d)
+    k = cov_vec(X, s, r, d)
     
-    # K^{-1}*k in RW's notation. Inverse cov mat times cov vec. 
-    lam = aux.tychonoff_solver(specs.U , specs.S , specs.V ,  k, reg)
+    # k*K^{-1} in RW's notation. Inverse cov mat times cov vec. 
+    kKinv = solver(specs ,  k)
 
     # the kriged value is...
-    f = np.dot(  y , lam )
+    f = einsum( 'i ,i' ,  y , kKinv )
     
-    # the variance is...
-    sigmaSquare =  aux.cov(0,0,r,d) - np.dot(k,lam)
-   
+    # account for the prior we've subtracted
     krig = f + specs.prior(s)
-    sig = math.sqrt( max(sigmaSquare,0) )   
     
-    return krig , sig 
+    if gradients:
+        
+        # the variance is...
+        sigSqr =  cov(0,0,r,d) - einsum( 'i , i  ', k, kKinv)
+        sigSqr = max(sigSqr,0)   
+
+        # calculate gradient of kriged value
+        xMinusX = asarray(s - X) 
+        FmpKinv = solver(specs, y)
+        gradKrig = -einsum( 'i ,i , ij -> j '  , FmpKinv, k, xMinusX )/(r*r) + specs.gradPrior(s)
+        
+        # calculate  gradient of sigma squared
+        gradSigSqr = 2*einsum( 'i ,i , ij -> j '  , kKinv, k, xMinusX )/(r*r)
+        return krig , sigSqr, gradKrig, gradSigSqr
+    
+    return krig 

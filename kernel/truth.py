@@ -7,6 +7,8 @@ Feel free to write to me about my code!
 these methods return what we believe is the true log-likelihood.
 you tell the container object about the function you want to use using the
 LL variable of the container.
+
+ALL LOG LIKELIHOODS ARE ASSUMED TO BE NON POSITIVE!!!
     
 '''
 import numpy as np
@@ -16,9 +18,9 @@ import math
 
 def sin_1D(s):
     '''
-    a wiggly sine log likelihood
+    a wiggly sine
     '''    
-    return math.sin(3*s)
+    return math.sin(3*s) -1
     
 def gaussian_1D(s):
     '''
@@ -30,13 +32,13 @@ def double_well_1D(s):
     '''
     this log likelihood is a double well potential (upside down)
     '''
-    return -2*s**4 + 5*s**2
+    return -2*s**4 + 5*s**2 -3.25
 
 def big_poly_1D(s):
     '''
     the following polynomial
     '''
-    return -(s**6  + 3.5*s**4  - 2.5*s**3 - 12.5*s**2 + 1.5*s )
+    return -(s**6  + 3.5*s**4  - 2.5*s**3 - 12.5*s**2 + 1.5*s ) - 10.28
     
 def norm(s):
     '''
@@ -45,31 +47,9 @@ def norm(s):
     t = np.linalg.norm(s)
     return -t*t
 
-def rosenbrock_2D(s):
-    '''
-    the (negative of the) 2D Rosenbrock function. google it if you've never
-    heard of it.
-    '''
-    return -(  (1 - s[0])**2 + 100*(s[1] - s[0]**2)**2  )
-    
-
-def log_rosenbrock_2D(s):
-    
-    '''
-    log of Rosenbrock's function
-    '''
-    return math.log(  (1-s[0])**2 + 100*(s[1]-s[0]**2)**2   )
-
 def zero(s):
     '''
     identically zero, used when the LL 
     is of no importance
     '''
     return 0
-
-def const(s):
-    '''
-    identically two, used when the LL 
-    is of no importance
-    '''
-    return 2

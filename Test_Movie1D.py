@@ -59,11 +59,11 @@ class Test(unittest.TestCase):
         x = np.arange(xMin, xMax, 0.05)
         
         # we create each frame many times, so the movie is slower and easier to watch
-        delay = 4
+        delay = 3
         
         # The number of evaluations of the true likelihood
         # change this if you want a longer\shorter movie
-        nf    = 10     
+        nf    = 33     
         
         # allocate memory for the arrays to be plotted
         kriged = np.zeros( x.shape )
@@ -72,12 +72,9 @@ class Test(unittest.TestCase):
         # create frames for the ffmpeg programs
         for frame in range (nf+1):
             
-            # the current a value of the kriged interpolant "at infinity"
-            
-            
             # create the kriged curve and the limit curve
             for j in range(0,len(x)):
-                kriged[j] = kg.kriging(x[j] ,specs)[0]
+                kriged[j] = kg.kriging(x[j] ,specs)
                 true[j] = specs.trueLL(x[j]) # the real log likelihood
             
             # each frame is saved delay times, so we can watch the movie at reasonable speed    

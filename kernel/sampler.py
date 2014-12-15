@@ -5,13 +5,17 @@ Created on May 2, 2014
 Feel free to write to me about my code!
 '''
 
-import numpy as np
 import scipy.optimize
 
 import emcee as mc
-
-import kriging as kg 
+import kriging as kg
+import numpy as np
 import targets
+
+# to make changing this easier. This is our score function
+# that we optimize in order to find the next point for
+#evaluating log-likelihood
+
 
 
 class Sampler(object):
@@ -54,7 +58,8 @@ class Sampler(object):
         
     '''
     
-    def __init__(self, specs, nwalkers=20, burn=500 , noptimizers=8):
+    def __init__(self, specs, nwalkers=100, burn=500 , noptimizers=20,
+                                 maxiter = 7500, target = targets.atan_sig):
         '''
         create an instance, create walkers, let them walk
         '''
@@ -77,7 +82,7 @@ class Sampler(object):
         # the first decorrelation time. 
         self.decorTime = burn
         
-        # the initial set of positions are uniform  in the box [-M,M]^ndim
+        # the initial set of positions
         self.pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
         self.pos = ( 2*self.pos  - 1.0 )*specs.r # shift and stretch
         self.pos = self.pos.reshape((self.nwalkers, self.ndim)) # reshape
@@ -85,24 +90,56 @@ class Sampler(object):
         # set the initial state of the PRNG
         self.state = np.random.get_state()
         
-        # create the emcee sampler and let it burn in
+        # create the emcee sampler, let it burn in and erase burn in
         self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
-        self.run_mcmc(self.burn)
+        self.didBurnIn = False
         
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
         
-       
+        # max num of optimization iterations
+        self.maxiter = maxiter
         
+        # the function which we optimize
+        self.target = target
+        
+    def choose_point_heuristic(self):
+        '''
+        use some heuristic, made up, ad hoc 
+        criterion to choose next point
+        '''           
+
+        bestValue = np.inf
+        
+        for _ in range(self.noptimizers):
+            
+            # sample a starting point
+            startPoint = self.sample_one()
+#             startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*max( map( np.linalg.norm , self.specs.X))
+
+            result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
+                                             method='CG', jac=True , options= {'maxiter' : self.maxiter} )
+            
+            if result.fun < bestValue:
+                bestValue = result.fun
+                bestPoint = result.x
+            
+       
+        bestPoint = bestPoint.reshape(self.ndim,)        
+        return bestPoint
+                    
+
     def sample_one(self):
         '''
         this method returns a single sample from the current posterior
         since we have a bunch of walkers, we return one of those 
         with every call to this method. if we have used them all 
-        (i.e if walerInd == nwalkers) then we are forced to run 
-        the emcee for some more time.
+        (i.e if walkerInd == nwalkers) then we are forced to run 
+        emcee for some more time.
         '''
-        
+        if not self.didBurnIn:
+            self.burnIn()
+            
         # if we have no more unused walkers
         if self.walkerInd == self.nwalkers:
             
@@ -126,9 +163,12 @@ class Sampler(object):
         sample a bunch\ a batch
         return a new, unused batch of positions of the goodman
         & weare walkers
-        * ``samples`` - np array of size (nwalkers , ndim)
+        * ``samples`` - numpy array of size (nwalkers , ndim)
         '''
         
+        if not self.didBurnIn:
+            self.burnIn()
+            
         if self.walkerInd != 0:
             
             # run the MCMC to get new batch 
@@ -148,11 +188,28 @@ class Sampler(object):
         :param nsteps:
             the number of steps we let the emcee sampler run
         '''   
-        self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
-                                                    self.pos, nsteps, self.state ) 
+        
+        self.pos, self.prob, self.state = self.sam.run_mcmc(
+                                                    self.pos, nsteps, self.state )
+#         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
+#                                                     self.pos, nsteps, self.state ) 
         
         # update the decorrelation time
-        self.decorTime = 2*max(self.sam.get_autocorr_time())
+        dec = 2*np.max( self.sam.acor )
+        if nsteps > 10*dec:
+            self.decorTime = max(dec , 20 )
+        else:
+            self.decorTime =self.burn
+        
+            
+    def burnIn(self):
+        '''
+        do the burn in phase and reset
+        '''
+        self.run_mcmc(self.burn)
+        self.sam.reset()
+        self.didBurnIn = True 
+        self.walkerInd = 0
          
 
     def learn(self):
@@ -163,35 +220,19 @@ class Sampler(object):
         
         # choose the next point 
         s = self.choose_point_heuristic()
-        
+       
         # add the new sample to our data set
         self.specs.add_point( s )
         
         # let them know we need a new batch before we sample
         self.walkerInd = self.nwalkers
-    
-    def choose_point_heuristic(self):
-        '''
-        use some heuristic, made up, ad hoc 
-        criterion to choose next point
-        '''           
         
-        target = targets.minus_exp_krig_times_sig_square  
-        bestValue = np.inf
+        # erase previous data so we do not accidentally use it
+        self.sam.reset()
         
-        for i in range(self.noptimizers):
-            
-            # sample a starting point
-            startPoint = self.sample_one()
-            
-            #startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*self.specs.M
-            result = scipy.optimize.minimize(target, startPoint, args=(self.specs,), 
-                                                                method='Powell')
-            
-            if result.fun < bestValue:
-                bestValue = result.fun
-                bestPoint = result.x
-            
-       
-        bestPoint = bestPoint.reshape(self.ndim,)        
-        return bestPoint
+        # tell everybody we're not burned in
+        self.didBurnIn = False
+
+        # update our burnin time to something more reasonable
+#         self.burn = 2*self.decorTime
+   
