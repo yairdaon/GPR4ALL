@@ -6,7 +6,7 @@ Feel free to write to me about my code!
 '''
 
 import math
-from kriging import kriging
+# from kriging import kriging
 from math import exp as xp
 
 pi2 = math.pi/2
@@ -20,7 +20,7 @@ def exp_krig_sigSqr(s ,specs):
     ''' 
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr= kriging(s , specs, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, gradients=True)
     
     if krig > 100:
         func = -xp100*sigSqr
@@ -44,7 +44,7 @@ def krig_sig(s , specs):
     '''
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr = kriging(s , specs ,gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, gradients=True)
     
     func = -krig/sigSqr 
     grad =   krig*gradSigSqr/(sigSqr*sigSqr) - gradKrig/sigSqr
@@ -61,7 +61,7 @@ def atan_sig( s , specs):
     '''
 
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr = kriging(s , specs, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, gradients=True)
     atanKrig = math.atan(krig)
     
     func     = -(atanKrig + pi2)*sigSqr 
@@ -80,7 +80,7 @@ def mod_atan_sig( s ,specs):
     ''' 
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr= kriging(s , specs, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, gradients=True)
     atanKrig = math.atan(krig)
      
     func     = -((atanKrig + pi2)*krig + 1)*sigSqr 

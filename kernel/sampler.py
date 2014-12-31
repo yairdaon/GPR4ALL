@@ -8,7 +8,7 @@ Feel free to write to me about my code!
 import scipy.optimize
 
 import emcee as mc
-import kriging as kg
+# import kriging as kg
 import numpy as np
 import targets
 
@@ -74,7 +74,7 @@ class Sampler(object):
         self.nwalkers = nwalkers 
         
         # number of points to start optimization. 
-        self.noptimizers = noptimizers
+        self.noptimizers = noptimizers  
         
         # set burn in time
         self.burn = burn 
@@ -91,7 +91,7 @@ class Sampler(object):
         self.state = np.random.get_state()
         
         # create the emcee sampler, let it burn in and erase burn in
-        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, kg.kriging, args=[ self.specs ])
+        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging)
         self.didBurnIn = False
         
         # tell samplers that they do not need to propagate the walkers
@@ -114,8 +114,8 @@ class Sampler(object):
         for _ in range(self.noptimizers):
             
             # sample a starting point
-            startPoint = self.sample_one()
-#             startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*max( map( np.linalg.norm , self.specs.X))
+#             startPoint = self.sample_one()
+            startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*max( map( np.linalg.norm , self.specs.X))
 
             result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
                                              method='CG', jac=True , options= {'maxiter' : self.maxiter} )

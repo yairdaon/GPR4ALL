@@ -6,9 +6,17 @@ Feel free to write to me about my code!
 '''
 import numpy as np
 
+from numpy import einsum as einsum
+from numpy import array as array
+from numpy import ravel as ravel
+from numpy import asarray as asarray
+
+from aux import tychonoff_solver as solver
+from aux import cov as cov
+from aux import cov_vec as cov_vec
+
 import aux
 import kernel.rap as rap
-import kernel.targets as targets
 
 class Container:   
     '''
@@ -99,6 +107,75 @@ class Container:
         # are the matrices we use ready or do we need to calculate them
         self.matricesReady = False       
     
+    def kriging(self, s, gradients=False):
+        '''
+        use algortihm 2.1 from page 19 of the book "Gaussian
+        Processes for Machine Learning" by Rasmussen and Williams.
+        They solve using Cholesky. Here we just store the matrix
+        [K + reg*Id]^{-1} where K is the covariance matrix and 
+        reg is a regularization we add to the diagonal, for 
+        stability.
+        
+        here this is interpreted as a log-likelihood \ log-probability
+        
+        according to our way of modeling the unknown log-likelihood, we 
+        believe that the log-likelihood at x is a random variable distributed 
+        normally N(kriged, std^2)
+        
+        :param s: location in space for which we want to calculate kriged log-likelihood
+        
+        :param self: this container object. it holds all required specifications 
+        
+        returns:
+        
+        * ``kriged`` -the kriged value, base on the data in the container object.
+        
+        * ``std`` - the standard deviation at the point s.
+        '''
+        
+        # make sure the matrices used in the kriging computation are ready    
+        if not self.matricesReady:
+                self.set_matrices()
+       
+        # unpack the variables
+        X = self.X
+        y = array( self.Fmp ) # F minus prior 
+        y = ravel(y)
+    
+        # parameters
+        r = self.r
+        d = self.d
+        
+        # create the covariance vector:
+        k = cov_vec(X, s, r, d)
+        
+        # k*K^{-1} in RW's notation. Inverse cov mat times cov vec. 
+        kKinv = solver(self ,  k)
+    
+        # the kriged value is...
+        f = einsum( 'i ,i' ,  y , kKinv )
+        
+        # account for the prior we've subtracted
+        krig = f + self.prior(s)
+        
+        if gradients:
+            
+            # the variance is...
+            sigSqr =  cov(0,0,r,d) - einsum( 'i , i  ', k, kKinv)
+            sigSqr = max(sigSqr,0)   
+    
+            # calculate gradient of kriged value
+            xMinusX = asarray(s - X) 
+            FmpKinv = solver(self, y)
+            gradKrig = -einsum( 'i ,i , ij -> j '  , FmpKinv, k, xMinusX )/(r*r) + self.gradPrior(s)
+            
+            # calculate  gradient of sigma squared
+            gradSigSqr = 2*einsum( 'i ,i , ij -> j '  , kKinv, k, xMinusX )/(r*r)
+            return krig , sigSqr, gradKrig, gradSigSqr
+        
+        return krig 
+
+
     def add_pair(self,x,f):
         ''' 
         add a location, its log likelihood and the log-likelihood
@@ -106,7 +183,7 @@ class Container:
         program run and learn the probability distribution on its own
         '''
         f = float(f)
-        self.X.append(np.ravel(x)) # loactions
+        self.X.append(ravel(x)) # loactions
         self.F.append(f) # log-likelihood
         self.Fmp.append( f - self.prior(x) ) # Fmp is F minus prior
         

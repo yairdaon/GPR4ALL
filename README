@@ -28,6 +28,7 @@ General Information
 1. Whenever I refer to a "container object", I mean an instance of the class 
 'Container' in the  'kernel.container' module. Usually an instance is called specs,
 a short for specifications. This instance holds everything a sampler needs.
+This instance is also the object you call when you want to do kriging.
  
 2. You have a container object. Sampling from the posterior it defines is done by
 an instance of Sampler. See example.py to see how you sample from the posterior.
