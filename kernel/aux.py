@@ -12,7 +12,7 @@ from numpy import ravel
 
 from math import exp
 
-def cov(x,y, r, d=1):
+def cov(x,y, *args):
     '''
     calculate autocovariance as
     k(x,y) = exp(   -||x-y||^2 / r   )
@@ -30,14 +30,25 @@ def cov(x,y, r, d=1):
     * ``cov`` - the covariance between x,y with 
         characteristic length r
     '''
-    dist = norm(x-y)/r    
+    
+    # unpack
+    r = args[0]
+    d = args[1]
+    
+    if len(args) > 2:
+        A = args[2]
+        t = x - y
+        dist = einsum(' i, ij, j ', t, A, t)/r
+
+    else:
+        dist = norm(x-y)/r  
 #     t = dist*1.7320508075688772 # sqrt(3)
 # 
 #     return (1 + t)*math.exp(-t)
 
     return  d*exp(  -(dist*dist)/2  ) 
 
-def cov_mat(X,r,d=1): 
+def cov_mat(X, *args): 
     '''
     create and return the covariance matrix for the observations
     :param X: 
@@ -57,12 +68,12 @@ def cov_mat(X,r,d=1):
     # set the values of the covariance, exploiting symmetry
     for i in range(n):
         for j in range (i):
-            C[i,j] = cov(X[i],X[j],r,d)
+            C[i,j] = cov(X[i],X[j], *args)
             C[j,i] = C[i,j]
-        C[i,i] = cov(X[i], X[i], r, d)
+        C[i,i] = cov(X[i], X[i], *args)
     return C
 
-def cov_vec(X,w,r,d=1):
+def cov_vec(X,w, *args):
     '''
     creates a vector of covariances, between 
     X(a list of numpy arrays) and w (a numpy
@@ -80,8 +91,8 @@ def cov_vec(X,w,r,d=1):
     '''
     
     return array( 
-#                     [cov(x,w,r,d) for x in X]
-                    map(lambda x: cov(x,w,r,d) , X )
+                    [cov(x,w, *args) for x in X]
+#                     map(lambda x: cov(x,w, *args) , X )
                     )
 
       
@@ -107,84 +118,3 @@ def tychonoff_solver( specs, b ):
     x = einsum( 'ij , i -> j', specs.V ,  y )  # x = V^t * y
 
     return x
-
-
-
-
-# 
-# def rosenbrock_KL_MC(specs ,tol = 1E-4  ):
-#     '''
-#     a function that calculates the KL divergence between a 
-#     the exp(- rosenbrock ) probability distribution and a 
-#     kriged probability distribution
-#     '''
-#      
-#     # we calculated this  analytically
-# #     roseNormalization = math.pi/10
-#     nwalkers=100
-#     burn=200
-#     nsteps = burn*15
-#      
-#     # the initial set of positions
-#     pos = np.random.rand(2 * nwalkers) #choose U[0,1]
-#     pos = ( 2*pos  - 1.0 ) # shift and stretch
-#     pos = pos.reshape((nwalkers, 2)) # reshape
-#      
-# #     # set the initial state of the PRNG
-# #     state = np.random.get_state()
-#      
-#     # create the emcee sampler and let it burn in
-#     sam = mc.EnsembleSampler(nwalkers, 2, truth.rosenbrock_2D)
-#      
-#     # burn in and then run the sampler
-#     pos , _ , _  = sam.run_mcmc(pos, burn)
-#     sam.reset()
-#     sam.run_mcmc(pos, nsteps)
-#      
-#     # get the chain
-#     sam.sample( nsteps )
-#     chain = sam.flatchain
-#     lnProbChain = sam.flatlnprobability
-#     kullbackLiebler = 0
-#     krigNormalization = 0
-#     for i in range(nwalkers*nsteps):
-#          
-#         # the position
-#         w = chain[ i , : ]
-#          
-#         # coresponding kriged LL
-#         krig = kg.kriging(w, specs)[0]
-#          
-#         # the true negative rosenbrock log-likelihood
-#         rose = lnProbChain[i]
-#          
-#         kullbackLiebler  +=   rose  - krig
-#         krigNormalization += math.exp( krig - rose ) #since it is the negative of rosenbrock  
-#              
-#     kullbackLiebler = kullbackLiebler/(nwalkers*nsteps)   
-#     krigNormalization = krigNormalization/(nwalkers*nsteps)     
-#      
-#     integratedTime = mc.autocorr.integrated_time(x, axis)
-#     std = /nsteps
-#     return kullbackLiebler +  math.log( krigNormalization )
-
-#         
-# 
-# def rosenbrock_KL_quad(specs ,tol = 1E-4  ):
-#     M = 5
-#     roseNormalization = math.pi/10
-#     def krig( x,y , specs):
-#         return math.exp(kg.kriging(np.array( [ x,y ]), specs)[0])
-#       
-#     Z = scipy.integrate.dblquad(krig, -M, M, lambda x: -M, lambda x: M, args=(specs,) )[0]
-#      
-#     
-#     def integrand(x , y ,specs): 
-#         p = np.array( [x,y])
-#         rose = truth.rosenbrock_2D(p)
-#         krig = kg.kriging(p, specs)[0]
-#         arg = math.exp( rose )*( rose - krig )  
-#         return arg 
-#         
-#     first = scipy.integrate.dblquad(integrand, -M, M, lambda x: -M, lambda x: M, args=(specs,) )[0]
-#     return first/roseNormalization + math.log(Z/roseNormalization)

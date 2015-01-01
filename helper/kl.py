@@ -36,28 +36,24 @@ def get_KL(phi ,psi, phiSamples):
     sumAvg = np.mean(phiMinPsi) # sample mean
     sumStd = np.std (phiMinPsi) # sample std
     Z , Zstd = Zpsi_over_Zphi(-phiMinPsi) # sample mean AND std!!!
+    logZ = math.log(Z)
 
     # bars on the sum term
-    sumLowBar    = sumAvg - sumStd*s
-    sumHighBar   = sumAvg + sumStd*s
+    sumLowBar    = sumStd*s
+    sumHighBar   = sumStd*s
     
+
     # bars on log term (a bit sketchy...)
-    logLowBar    = math.log( max(1e-20, Z - Zstd*s) )
-    logHighBar   = math.log( Z + Zstd*s )
+    logLowBar    = logZ - math.log( max(1e-20, Z - Zstd*s) )
+    logHighBar   = math.log( Z + Zstd*s ) - logZ
     
+
     # KL divergence
     kl           = math.log(Z) + sumAvg
     klLowBar     = sumLowBar + logLowBar
     klHighBar    = sumHighBar + logHighBar
-#     
-#     if Zstd >= Zavg:
-#         lowBar = sumStd
-#         lowLog = 0
-#     else:
-#         lowBar = sumStd + math.log(1 - Zstd/Zavg)
-#         lowLog = Zavg - Zstd
     
-    
+
     return [kl, klLowBar , klHighBar,
                 sumAvg, sumLowBar, sumHighBar,
                 math.log(Z), logLowBar, logHighBar]
@@ -72,21 +68,35 @@ def Zpsi_over_Zphi(psiMinPhi):
     '''
     
     maxFactor    = np.max( psiMinPhi )
- 
-    if maxFactor < 200:
-        maxFactor = 0
+    
+    if maxFactor > 200:
+        
+        # modified exponents
+        modExp = np.exp( psiMinPhi - maxFactor )
+        
+        # the sample mean
+        avg    =  np.mean(modExp ) * math.exp(200)
+        
+        # the sample variance
+        std    =  np.std( modExp ) * math.exp(200)
+        
+        
+    elif maxFactor < -200:
+        
+        avg = 1.0
+        std = 0.01
     else:
-        print("please note that we factor out " + str(maxFactor) +" for numerical stability")
-    
-    #modified exponents
-    modExp = np.exp( psiMinPhi - maxFactor )
-    
-    # the sample mean
-    avg    =  np.mean(modExp ) * math.exp(maxFactor)
-    
-    # the sample variance
-    std    =  np.std( modExp ) * math.exp(maxFactor)
-    
+        
+        # modified exponents
+        modExp = np.exp( psiMinPhi - maxFactor )
+        
+        # the sample mean
+        avg    =  np.mean(modExp ) * math.exp(maxFactor)
+        
+        # the sample variance
+        std    =  np.std( modExp ) * math.exp(maxFactor)
+        
+        
     #give back the love y'all!!!
     return avg, std
 

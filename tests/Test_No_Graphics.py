@@ -16,7 +16,6 @@ import kernel.truth as truth
 
 import helper.rosenbrock as rose
 
-
 class Test(unittest.TestCase):
     '''
     assorted tests with varying levels of simplicity.

@@ -9,8 +9,17 @@ import math
 # from kriging import kriging
 from math import exp as xp
 
+
 pi2 = math.pi/2
 xp100 = math.exp(100)
+
+
+def kl(s, specs, n = 500):
+    '''
+    our target is 
+    E[ KL( p_n || p_{n+1} )  ]
+    '''
+    pass
 
 def exp_krig_sigSqr(s ,specs):
     '''
@@ -89,8 +98,7 @@ def mod_atan_sig( s ,specs):
     
     return func  , grad 
 mod_atan_sig.desc = "-{[arctan(krig) + pi/2]*krig + 1}*sig^2"
- 
-        
+    
 
 def const (s ,specs):
         '''

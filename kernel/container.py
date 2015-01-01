@@ -105,7 +105,10 @@ class Container:
         self.gradPrior = lambda x: -2*x
         
         # are the matrices we use ready or do we need to calculate them
-        self.matricesReady = False       
+        self.matricesReady = False   
+        
+        # do we use affine invariant interpolation
+#         self.affInv = affInv  
     
     def kriging(self, s, gradients=False):
         '''
@@ -161,7 +164,7 @@ class Container:
         if gradients:
             
             # the variance is...
-            sigSqr =  cov(0,0,r,d) - einsum( 'i , i  ', k, kKinv)
+            sigSqr = d - einsum( 'i , i  ', k, kKinv) # d = cov(0)
             sigSqr = max(sigSqr,0)   
     
             # calculate gradient of kriged value
@@ -234,10 +237,42 @@ class Container:
         we use this procedure when we add a sampled "ground truth" point 
         once the matrices are ready we set matricesReady = True
         '''
-             
-        cm = aux.cov_mat(self.X,self.r, self.d)    # cm  = covariance matrix
+        
+        pr = [self.r, self.d]
+
+        
+#         if len(self.X) > 2 and self.affInv: 
+#             cog = sum(self.X)/len(self.X)
+#             V   = self.X - cog  
+#             B   = np.dot(V.T , V) 
+#             d   = len( self.X[0] )
+#             assert B.shape == (d,d) , "ooopsssyyy!!!1!!11!1!!"
+#             self.A  = np.linalg.inv(B)
+#             pr.append(self.A)
+#             print('-----')
+#             print("V = ")
+#             print(V)
+#             print
+#             
+#             print("B = ")
+#             print(B)
+#             print
+#             
+#             print("A = ")
+#             print(self.A)
+#             print
+#             print("d = ")
+#             print(d)
+#             print('-----')
+#         else:
+#             self.A = None
+        
+        
+        
+        cm = aux.cov_mat(self.X, *pr)    # cm  = covariance matrix
         self.U, self.S, self.V = np.linalg.svd(cm, full_matrices = True, compute_uv = True)
-      
+
+        
         # tell everybody the matrices are ready
         self.matricesReady = True
 

@@ -17,7 +17,6 @@ from matplotlib import gridspec
 # except:
 #    import pickle
 
-# from kernel.kriging import kriging
 import kernel.sampler as smp
 import kernel.container as cot
 import helper.rosenbrock as rose
@@ -41,11 +40,23 @@ class Test(unittest.TestCase):
         # tell the OS to prepare for the movie and the frames
         os.system("rm -f Data/Movie2DContourFrames/*.png")
         
-        def make_movie_frame( sample , frame, nPoints, LLlevels , intLevels,  kriged, integrand, pts, X, Y, KL, M, nSamp, desc, delay ):
+        def make_movie_frame( sample , frame, LLlevels , intLevels,  kriged, integrand, pts, X, Y, KL, desc, param ):
             '''
             well, create and save a movie frame. mostly 
             boring code.
             '''      
+            
+            # unpack 
+            nSamp   = param[0]
+            maxIter = param[1]
+            nwalk   = param[2]
+            nopt    = param[3]
+            nPoints = param[4]
+            M       = param[5]
+            delay   = param[6] 
+            
+            
+            
             xs = np.ravel( np.transpose( np.array( pts ) )[0] )
             ys = np.ravel( np.transpose( np.array( pts ) )[1] )
              
@@ -67,50 +78,50 @@ class Test(unittest.TestCase):
             uniKl   =  KL[: , 9 ]
             
             # create plot
-            fig = plt.figure( figsize=(30, 15) )
-            fig.suptitle( 'Total of ' + str(len(pts)) + ' LL evaluations. KL bars w\ ' + str(nSamp) 
-                          + ' samples. \nOptimizing ' + desc , fontsize=22, verticalalignment = 'top') 
+            fig = plt.figure( figsize=(18, 9) )
+            fig.suptitle( 'Total of ' + str(len(pts)) + ' LL evaluations. KL bars w\ ' + str(nSamp) +
+                           ' samples. ' + str(nopt) + ' optimizers with ' + str(maxIter) +
+                           ' optimization steps. \nOptimizing ' + desc , fontsize=12, verticalalignment = 'top') 
             
             gs = gridspec.GridSpec(6, 8)
-            ax1 = plt.subplot(gs[0:4, 0:4  ])
-            ax5 = plt.subplot(gs[0:4, 4:8  ])
-            ax2 = plt.subplot(gs[4:5  , 0:3  ])
-#             ax6 = plt.subplot(gs[4:5  , 2:4  ])
-            ax3 = plt.subplot(gs[4:5  , 3:6  ])
-            ax4 = plt.subplot(gs[4:5  , 6:8  ])
+            ax1 = plt.subplot(gs[0:4  , 0:4  ])
+            ax5 = plt.subplot(gs[0:4  , 4:8  ])
+            ax2 = plt.subplot(gs[4:6  , 0:3  ])
+            ax3 = plt.subplot(gs[4:6  , 3:6  ])
+            ax4 = plt.subplot(gs[4:6  , 6:8  ])
             
             
             # create big contour plot    
             cs1 = ax1.contour(X, Y, kriged, levels = LLlevels  ) 
             ax1.clabel(cs1, fmt = '%.0f', inline = False) 
             ax1.scatter(xs, ys)
-            ax1.set_title('Learned Rosenbrock Contours and LL evaluations.' , fontsize=22)
+            ax1.set_title('Learned Rosenbrock Contours and LL evaluations.' , fontsize=12)
             
             cs5 = ax5.contour(X, Y, integrand, levels = intLevels  ) 
             ax5.clabel(cs5, fmt = '%.0f', inline = False) 
-            ax5.set_title('Contours of KL integrand' , fontsize=22)
+            ax5.set_title('Contours of KL integrand' , fontsize=12)
             
                         
             x = np.asarray( [ range(len(kl))        , range(len(uniKl))       ])
             y = np.asarray( [ kl                    , uniKl                   ])
-            t = np.asarray( [ np.ones(len(kl))      , 50*np.ones(len(kl))     ])
+            t = np.asarray( [ np.zeros(len(kl))      , 100*np.ones(len(kl))     ])
             ax2.scatter(x, y, c=t)          
             ax2.errorbar(range(len(kl)), kl ,yerr=[lowBar, highBar], linestyle="None")
-            ax2.set_ylim([-200,100])
+            ax2.set_ylim([-200,500])
             ax2.set_xlim([-1,nPoints+1])
-            ax2.set_title('MC KL w\ bars (blue). uni KL (red)', fontsize=22)
+            ax2.set_title('MC KL w\ bars (blue). uni KL (red)', fontsize=12)
             
             ax3.scatter(range(len(sumTerm)),sumTerm)
             ax3.errorbar(range(len(sumTerm)), sumTerm ,yerr=[lowSum , highSum], linestyle="None")
-            ax3.set_ylim([-500,500])
+            ax3.set_ylim([-200,500])
             ax3.set_xlim([-1,nPoints+1])
-            ax3.set_title('sum term w\ bars', fontsize=22)
+            ax3.set_title('sum term w\ bars', fontsize=12)
             
             ax4.scatter(range(len(xp )),xp )
             ax4.errorbar(range(len(xp)), xp  ,yerr=[lowExp , highExp], linestyle="None")
-            ax4.set_ylim([-500,500])
+            ax4.set_ylim([-200,500])
             ax4.set_xlim([-1,nPoints+1])
-            ax4.set_title('log(sum exp) term w\ bars' , fontsize=18)
+            ax4.set_title('log(sum exp) term w\ bars' , fontsize=12)
          
             # create the frame
             for _ in range(delay):
@@ -151,16 +162,18 @@ class Test(unittest.TestCase):
         
             
         # parameters to play with
-        nSamples  = 50000   # number of samples we use for KL
-        maxiter   = 8000   # max number of optimization steps
-        nPoints   = 42     # The number of evaluations of the true likelihood
+        nSamples  = 500      # number of samples we use for KL
+        maxiter   = 20000    # max number of optimization steps
+        nPoints   = 50      # The number of evaluations of the true likelihood
         delay     = 3       # number of copies of each frame
         M         = 6       # bound on the plot axes
+        nopt      = 40
+        nwalk     = 40
         LLlevels  = self.getLevels(350 , -1e6 , 1e4) # levels of log likelihood contours
         intLevels = np.concatenate([np.arange(0,4,0.8),
                     np.arange(5,50,15),  np.arange(50,550,250)] )  # levels of integrand contours
-        delta     = 0.1 # grid for the contour plots
-        
+        delta     = 0.05 # grid for the contour plots
+        parameters = [nSamples, maxiter, nwalk, nopt , nPoints ,M ,delay]
         
         # initialize container and sampler
         specs = cot.Container( rose.rosenbrock_2D )
@@ -169,8 +182,8 @@ class Test(unittest.TestCase):
             for j in range( -n, n+1 ):
                 specs.add_point(np.array( [2*i , 2*j ] ))
         sampler = smp.Sampler( specs , target = targets.atan_sig, 
-                               maxiter = maxiter , nwalkers = 10,
-                               noptimizers = 10,  burn = 100)
+                               maxiter = maxiter , nwalkers = 40,
+                               noptimizers = 40,  burn = 500)
         
         
         # memory allocations. constants etc
@@ -198,6 +211,7 @@ class Test(unittest.TestCase):
             # get the KL divergence estimate and error bars
             samples  = rose.sample_rosenbrock(nSamples)
             tmpKL = kl.get_KL(locRos ,locKrig, samples)
+#             tmpKL = rose.rosenbrock_KL(specs, nSamples)
             
             # the kriged surface
             kriged     = np.reshape( np.asarray([ locKrig(x) for x in points.T]) , form )
@@ -226,8 +240,8 @@ class Test(unittest.TestCase):
 #             print(logZpsiOverZphi)
             
             # make the frames
-            frame =  self.make_movie_frame( sample, frame , nPoints, LLlevels, intLevels ,
-                                            kriged, integrand, specs.X, X, Y, KL, M, nSamples, desc, delay)
+            frame =  self.make_movie_frame( sample, frame, LLlevels, intLevels ,
+                                            kriged, integrand, specs.X, X, Y, KL, desc, parameters)
 
             # learn a new point and incorporate it and save
             sampler.learn() 

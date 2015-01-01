@@ -6,6 +6,7 @@ Feel free to write to me about my code!
 '''
 
 import numpy as np
+import unittest
 
 import kernel.container as cot
 import kernel.sampler as smp
@@ -112,3 +113,38 @@ print("")
 print("A batch sampled from the posterior. the shape is (nwalkers , ndim). ")
 print(batch)
 print("Don't forget to take a look at rap.py - it is super short.")
+
+
+
+
+#===============================================================================
+# Perform tests
+#===============================================================================
+print("performing tests:")
+
+
+testmodules = [
+    'tests.Test_No_Graphics',
+    'tests.Test_Plots',
+    'tests.Test_KL',
+    'tests.Test_Rosenbrock',
+    'tests.Test_Movie1D',
+    'tests.Test_Movie2D',
+    'tests.Test_Gaussian',
+    ]
+
+suite = unittest.TestSuite()
+
+for t in testmodules:
+    try:
+        # If the module defines a suite() function, call it to get the suite.
+        mod = __import__(t, globals(), locals(), ['suite'])
+        suitefn = getattr(mod, 'suite')
+        suite.addTest(suitefn())
+    except (ImportError, AttributeError):
+        # else, just load all the test cases from the module.
+        suite.addTest(unittest.defaultTestLoader.loadTestsFromName(t))
+
+unittest.TextTestRunner().run(suite)
+
+
