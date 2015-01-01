@@ -28,7 +28,6 @@ class Test(unittest.TestCase):
     histogram
     '''
 
-
     def testGaussian(self):
         '''
         take samples from posterior (log) likelihood
