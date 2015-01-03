@@ -53,3 +53,11 @@ def zero(s):
     is of no importance
     '''
     return 0
+
+def dummy(s):
+    '''
+    this function will raise an error
+    it is a dummy LL that should not be 
+    called
+    '''
+    raise Exception("You have called the dummy log likelihood. Shame on you!!!")

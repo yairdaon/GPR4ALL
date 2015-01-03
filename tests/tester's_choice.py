@@ -9,13 +9,13 @@ import unittest
 print("performing tests:")
 
 testmodules = [
-    'tests.Test_No_Graphics',
-    'tests.Test_Plots',
-    'tests.Test_KL',
-    'tests.Test_Rosenbrock',
-    'tests.Test_Movie1D',
-    'tests.Test_Movie2D',
-    'tests.Test_Gaussian',
+    'Test_No_Graphics',
+    'Test_Plots',
+    'Test_KL',
+    'Test_Rosenbrock',
+    'Test_Movie1D',
+    'Test_Movie2D',
+    'Test_Gaussian',
     ]
 
 

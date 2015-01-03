@@ -12,10 +12,6 @@ import math
 
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
-# try:
-#    import cPickle as pickle
-# except:
-#    import pickle
 
 import kernel.sampler as smp
 import kernel.container as cot
@@ -54,6 +50,7 @@ class Test(unittest.TestCase):
             nPoints = param[4]
             M       = param[5]
             delay   = param[6] 
+            delta   = param[7]
             
             
             
@@ -81,7 +78,8 @@ class Test(unittest.TestCase):
             fig = plt.figure( figsize=(18, 9) )
             fig.suptitle( 'Total of ' + str(len(pts)) + ' LL evaluations. KL bars w\ ' + str(nSamp) +
                            ' samples. ' + str(nopt) + ' optimizers with ' + str(maxIter) +
-                           ' optimization steps. \nOptimizing ' + desc , fontsize=12, verticalalignment = 'top') 
+                           ' optimization steps. Mesh size is ' + str(delta) +
+                           '.\nOptimizing ' + desc , fontsize=12, verticalalignment = 'top') 
             
             gs = gridspec.GridSpec(6, 8)
             ax1 = plt.subplot(gs[0:4  , 0:4  ])
@@ -162,18 +160,19 @@ class Test(unittest.TestCase):
         
             
         # parameters to play with
-        nSamples  = 500      # number of samples we use for KL
-        maxiter   = 20000    # max number of optimization steps
-        nPoints   = 50      # The number of evaluations of the true likelihood
-        delay     = 3       # number of copies of each frame
-        M         = 6       # bound on the plot axes
-        nopt      = 40
-        nwalk     = 40
+        nSamples  = 5000      # number of samples we use for KL
+        maxiter   = 12500    # max number of optimization steps
+        nPoints   = 80       # The number of evaluations of the true likelihood
+        delay     = 3        # number of copies of each frame
+        M         = 7        # bound on the plot axes
+        nopt      = 50
+        nwalk     = 50
+        burn      = 500
         LLlevels  = self.getLevels(350 , -1e6 , 1e4) # levels of log likelihood contours
         intLevels = np.concatenate([np.arange(0,4,0.8),
                     np.arange(5,50,15),  np.arange(50,550,250)] )  # levels of integrand contours
         delta     = 0.05 # grid for the contour plots
-        parameters = [nSamples, maxiter, nwalk, nopt , nPoints ,M ,delay]
+        parameters = [nSamples, maxiter, nwalk, nopt , nPoints ,M ,delay, delta]
         
         # initialize container and sampler
         specs = cot.Container( rose.rosenbrock_2D )
@@ -181,9 +180,9 @@ class Test(unittest.TestCase):
         for i in range( -n , n+1 ):
             for j in range( -n, n+1 ):
                 specs.add_point(np.array( [2*i , 2*j ] ))
-        sampler = smp.Sampler( specs , target = targets.atan_sig, 
-                               maxiter = maxiter , nwalkers = 40,
-                               noptimizers = 40,  burn = 500)
+        sampler = smp.Sampler( specs , target = targets.exp_krig_sigSqr, 
+                               maxiter = maxiter , nwalkers = nwalk,
+                               noptimizers = nopt,  burn = burn)
         
         
         # memory allocations. constants etc

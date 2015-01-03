@@ -9,6 +9,8 @@ import unittest
 import numpy as np
 import math
 import helper.kl as kl
+
+
 class Test(unittest.TestCase):
 
  
@@ -90,7 +92,9 @@ class Test(unittest.TestCase):
         # compare normalization constants
         trueZpsiOverZphi = math.exp(Zquo)
         self.assertAlmostEqual(trueZpsiOverZphi, math.exp(klDiv[6]), 1)
-                 
+       
+  
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testTestKL']
     unittest.main()

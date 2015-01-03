@@ -7,6 +7,37 @@ Feel free to write to me about my code!
 import numpy as np
 import math
 
+
+def expected_KL(s, specs, specsTmp, samplerTmp, n = 2000):
+        '''
+        our target is 
+        E[ KL( p_n+1 || p_n )  ]
+        '''
+        
+        pts = np.array( [ -1.5 , -1.0 , -0.5, 0.0, 0.5, 1.0, 1.5 ])
+        
+        tot = 0.0
+        for p in pts:
+            
+            # remove previous point
+            specsTmp.remove_last_point()
+            
+            # create and add a new value
+            mu , sigSqr = specs.kriging(s, True)[0:2]
+            f = mu + p * math.sqrt(sigSqr)
+            specsTmp.add_pair(s, f)
+            
+            phi = specsTmp.kriging 
+            psi = specs.kriging
+            
+            # generate samples for KL
+            samplerTmp.run_mcmc(n)
+            phiSamples = samplerTmp.flatchain()
+            
+            tot = tot + get_KL(phi, psi, phiSamples)[0]
+        
+        return -tot
+        
 def get_KL(phi ,psi, phiSamples):
     '''
     we calculate the kl divergence:

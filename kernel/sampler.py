@@ -8,14 +8,14 @@ Feel free to write to me about my code!
 import scipy.optimize
 
 import emcee as mc
-# import kriging as kg
+
 import numpy as np
 import targets
 
-# to make changing this easier. This is our score function
-# that we optimize in order to find the next point for
-#evaluating log-likelihood
+import kernel.container as cot
+import kernel.truth as truth
 
+import helper.kl as kl
 
 
 class Sampler(object):
@@ -103,6 +103,50 @@ class Sampler(object):
         # the function which we optimize
         self.target = target
         
+        
+    def choose_point_expected_KL(self):
+        '''
+        use some heuristic, made up, ad hoc 
+        criterion to choose next point
+        '''           
+
+        # this is the container of (n+1) points
+        specsTmp = cot.Container( truth.dummy, r=self.specs.r, d=self.specs.d, args=self.specs.args, 
+                                    kwargs=self.specs.kwargs)
+        specsTmp.set_prior(self.specs.prior, self.specs.gradPrior)
+         
+        # add n+1 (!!!) points. 
+        for (x,f) in zip(self.specs.X, self.specs.F):
+            specsTmp.add_pair(x, f)
+        specsTmp.add_pair(0.0, 0.0)  # this junk will be ignnored  
+ 
+         
+        #  a sampler to sample from the n+1 points kriged log likelihood    
+        samplerTmp = Sampler(specsTmp, target = truth.dummy,
+                        nwalkers = self.nwalkers, 
+                        noptimizers = self.noptimizers,  burn = self.burn)
+
+        target =  kl.expected_KL
+
+        bestValue = np.inf
+        
+        for _ in range(self.noptimizers):
+            
+            # sample a starting point
+            startPoint = self.sample_one()
+
+            result = scipy.optimize.minimize(target, startPoint, args=(self.specs, specsTmp, samplerTmp), 
+                                                 method='Nelder-Mead' , options= {'maxiter' : self.maxiter} )
+                
+            if result.fun < bestValue:
+                bestValue = result.fun
+                bestPoint = result.x
+            
+       
+        bestPoint = bestPoint.reshape(self.ndim,)        
+        return bestPoint    
+    
+    
     def choose_point_heuristic(self):
         '''
         use some heuristic, made up, ad hoc 
@@ -113,16 +157,23 @@ class Sampler(object):
         
         for _ in range(self.noptimizers):
             
-            # sample a starting point
-#             startPoint = self.sample_one()
-            startPoint = ( 2*np.random.rand(self.ndim) -  np.ones(self.ndim)  )*max( map( np.linalg.norm , self.specs.X))
-
-            result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
-                                             method='CG', jac=True , options= {'maxiter' : self.maxiter} )
+            p = self.sample_one()
+            var = -self.specs.kriging( p ,True)[1]
             
-            if result.fun < bestValue:
-                bestValue = result.fun
-                bestPoint = result.x
+            if var < bestValue:
+                bestValue = var
+                bestPoint = p
+            
+            
+            
+#             # sample a starting point
+#             startPoint = self.sample_one()
+# 
+#             result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
+#                                                 method='BFGS', jac=True , options= {'maxiter' : self.maxiter} )
+#             if result.fun < bestValue:
+#                 bestValue = result.fun
+#                 bestPoint = result.x
             
        
         bestPoint = bestPoint.reshape(self.ndim,)        
@@ -201,7 +252,15 @@ class Sampler(object):
         else:
             self.decorTime =self.burn
         
-            
+    def flatchain(self):
+        '''
+        get the flattened chain
+        '''
+        
+        # shape is (number of steps , dimension)
+        return self.sam.flatchain     
+    
+     
     def burnIn(self):
         '''
         do the burn in phase and reset
@@ -220,7 +279,8 @@ class Sampler(object):
         
         # choose the next point 
         s = self.choose_point_heuristic()
-       
+#         s = self.choose_point_expected_KL()
+
         # add the new sample to our data set
         self.specs.add_point( s )
         

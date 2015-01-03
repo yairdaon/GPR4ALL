@@ -178,7 +178,6 @@ class Container:
         
         return krig 
 
-
     def add_pair(self,x,f):
         ''' 
         add a location, its log likelihood and the log-likelihood
@@ -191,10 +190,7 @@ class Container:
         self.Fmp.append( f - self.prior(x) ) # Fmp is F minus prior
         
         # we need to recalculate the matrices, so the matrices aren't ready
-        self.matricesReady = False
-        
-        # the limits need to be recalculated also
-        self.limitsReady = False
+        self.matricesReady = False    
     
     def add_point(self , x):
         '''
@@ -207,6 +203,19 @@ class Container:
         f = float(rap.rapper( x, self.trueLL , self.args, self.kwargs))
         self.add_pair(x, f)
     
+    def remove_last_point(self):
+        '''
+        remove the last point we added
+        used in calculating KL target
+        '''
+        
+        del self.X[-1] # loactions
+        del self.F[-1] # log-likelihood
+        del self.Fmp[-1] # Fmp is F minus prior
+        
+        # we need to recalculate the matrices, so the matrices aren't ready
+        self.matricesReady = False    
+        
     def set_r(self,r):
         '''
         set the hyper parameter r and the regularization
