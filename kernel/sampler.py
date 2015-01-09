@@ -91,7 +91,7 @@ class Sampler(object):
         self.state = np.random.get_state()
         
         # create the emcee sampler, let it burn in and erase burn in
-        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging)
+        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging) #, kwargs={'grads': False , 'var': False} )
         self.didBurnIn = False
         
         # tell samplers that they do not need to propagate the walkers
@@ -103,7 +103,63 @@ class Sampler(object):
         # the function which we optimize
         self.target = target
         
+        self.variances = []
         
+        self.choose_point = self.choose_point_heuristic
+        
+    def choose_point_ratios(self):
+        '''
+        use some heuristic, made up, ad hoc 
+        criterion to choose next point
+        '''           
+        self.maxiter = 20
+        n = 3500
+        self.burnIn()
+        self.run_mcmc( n )
+            
+        target = targets.goodmans_criterion   
+        bestValue = np.inf
+
+        for _ in range(self.noptimizers):
+            
+            # sample a starting point
+            startPoint = self.sample_one()
+ 
+            result = scipy.optimize.minimize(target, startPoint, args=(self.specs, self.variances), 
+                                                method='Nelder-Mead', options= {'maxiter' : self.maxiter} )
+            if result.fun < bestValue:
+                bestValue = result.fun
+                bestPoint = result.x
+            
+       
+        bestPoint = bestPoint.reshape(self.ndim,)        
+        return bestPoint
+                    
+    
+    def choose_point_heuristic(self):
+        '''
+        use some heuristic, made up, ad hoc 
+        criterion to choose next point
+        '''           
+
+        bestValue = np.inf
+        
+        for _ in range(self.noptimizers):
+            
+            # sample a starting point
+            startPoint = self.sample_one()
+ 
+            result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
+                                                method='BFGS', jac=True , options= {'maxiter' : self.maxiter} )
+            if result.fun < bestValue:
+                bestValue = result.fun
+                bestPoint = result.x
+            
+       
+        bestPoint = bestPoint.reshape(self.ndim,)        
+        return bestPoint
+
+          
     def choose_point_expected_KL(self):
         '''
         use some heuristic, made up, ad hoc 
@@ -145,41 +201,83 @@ class Sampler(object):
        
         bestPoint = bestPoint.reshape(self.ndim,)        
         return bestPoint    
-    
-    
-    def choose_point_heuristic(self):
+
+
+    def learn(self):
         '''
-        use some heuristic, made up, ad hoc 
-        criterion to choose next point
-        '''           
-
-        bestValue = np.inf
+        if we want to choose another point to calculate the 
+        log-likelihood at - this is the method we use
+        '''
         
-        for _ in range(self.noptimizers):
-            
-            p = self.sample_one()
-            var = -self.specs.kriging( p ,True)[1]
-            
-            if var < bestValue:
-                bestValue = var
-                bestPoint = p
-            
-            
-            
-#             # sample a starting point
-#             startPoint = self.sample_one()
-# 
-#             result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
-#                                                 method='BFGS', jac=True , options= {'maxiter' : self.maxiter} )
-#             if result.fun < bestValue:
-#                 bestValue = result.fun
-#                 bestPoint = result.x
-            
-       
-        bestPoint = bestPoint.reshape(self.ndim,)        
-        return bestPoint
-                    
+        # choose the next point 
+        s = self.choose_point()
+        
+        # add the new sample to our data set
+        self.specs.add_point( s )
+        
+        # let them know we need a new batch before we sample
+        self.walkerInd = self.nwalkers
+        
+        # erase previous data so we do not accidentally use it
+        self.sam.reset()
+        
+        # tell everybody we're not burned in
+        self.didBurnIn = False
 
+        # update our burnin time to something more reasonable
+#         self.burn = 2*self.decorTime
+    
+           
+    def run_mcmc(self, nsteps):
+        '''
+        run the emcee sampler for nsteps steps 
+        :param nsteps:
+            the number of steps we let the emcee sampler run
+        '''   
+        
+
+        self.pos, self.prob, self.state = self.sam.run_mcmc(
+                                                    self.pos, nsteps, self.state )
+        
+#         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
+#                                                     self.pos, nsteps, self.state ) 
+        
+#         self.variances = np.ravel(np.asarray( self.blobs ))
+#         print("ran MCMC. shape of variances is " + str(self.variances.shape))
+        
+        # update the decorrelation time
+        dec = 2*np.max( self.sam.acor )
+        if nsteps > 10*dec:
+            self.decorTime = max(dec , 20 )
+        else:
+            self.decorTime =self.burn
+    
+    
+    def sample_batch(self):
+        '''
+        sample a bunch\ a batch
+        return a new, unused batch of positions of the goodman
+        & weare walkers
+        * ``samples`` - numpy array of size (nwalkers , ndim)
+        '''
+        
+        if not self.didBurnIn:
+            self.burnIn()
+            
+        if self.walkerInd != 0:
+            
+            # run the MCMC to get new batch 
+            self.run_mcmc(self.decorTime)
+        
+        # create a copy of the positions, so nothing unexpected happens if we parallelize
+        samples = self.pos[:,:]
+        
+        # let them know we used this batch
+        self.walkerInd = self.nwalkers
+        
+        return samples
+     
+        
     def sample_one(self):
         '''
         this method returns a single sample from the current posterior
@@ -207,51 +305,8 @@ class Sampler(object):
         self.walkerInd = self.walkerInd + 1
         
         return sample
-            
-
-    def sample_batch(self):
-        '''
-        sample a bunch\ a batch
-        return a new, unused batch of positions of the goodman
-        & weare walkers
-        * ``samples`` - numpy array of size (nwalkers , ndim)
-        '''
-        
-        if not self.didBurnIn:
-            self.burnIn()
-            
-        if self.walkerInd != 0:
-            
-            # run the MCMC to get new batch 
-            self.run_mcmc(self.decorTime)
-        
-        # create a copy of the positions, so nothing unexpected happens if we parallelize
-        samples = self.pos[:,:]
-        
-        # let them know we used this batch
-        self.walkerInd = self.nwalkers
-        
-        return samples
-        
-    def run_mcmc(self, nsteps):
-        '''
-        run the emcee sampler for nsteps steps 
-        :param nsteps:
-            the number of steps we let the emcee sampler run
-        '''   
-        
-        self.pos, self.prob, self.state = self.sam.run_mcmc(
-                                                    self.pos, nsteps, self.state )
-#         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
-#                                                     self.pos, nsteps, self.state ) 
-        
-        # update the decorrelation time
-        dec = 2*np.max( self.sam.acor )
-        if nsteps > 10*dec:
-            self.decorTime = max(dec , 20 )
-        else:
-            self.decorTime =self.burn
-        
+     
+                    
     def flatchain(self):
         '''
         get the flattened chain
@@ -259,7 +314,7 @@ class Sampler(object):
         
         # shape is (number of steps , dimension)
         return self.sam.flatchain     
-    
+     
      
     def burnIn(self):
         '''
@@ -270,29 +325,3 @@ class Sampler(object):
         self.didBurnIn = True 
         self.walkerInd = 0
          
-
-    def learn(self):
-        '''
-        if we want to choose another point to calculate the 
-        log-likelihood at - this is the method we use
-        '''
-        
-        # choose the next point 
-        s = self.choose_point_heuristic()
-#         s = self.choose_point_expected_KL()
-
-        # add the new sample to our data set
-        self.specs.add_point( s )
-        
-        # let them know we need a new batch before we sample
-        self.walkerInd = self.nwalkers
-        
-        # erase previous data so we do not accidentally use it
-        self.sam.reset()
-        
-        # tell everybody we're not burned in
-        self.didBurnIn = False
-
-        # update our burnin time to something more reasonable
-#         self.burn = 2*self.decorTime
-   

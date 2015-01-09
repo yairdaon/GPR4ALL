@@ -7,10 +7,30 @@ Feel free to write to me about my code!
 
 import math
 from math import exp as xp
+import numpy as np
 
 
 pi2 = math.pi/2
 xp100 = math.exp(100)
+
+def goodmans_criterion(s , specs, variances):
+    '''
+    use goodman's criterion
+    '''
+    n = float(len(variances))
+    v = specs.kriging(s, var=True)[1]
+    
+    numerator   = (n/n+1)*np.mean( np.exp( variances ) ) + v/(n+1)
+    
+    halfVars = variances/2.0
+    denominator = (n/n+1)*np.mean( np.exp( halfVars ) ) + 0.5*v/(n+1)
+    denominator = denominator*denominator
+    
+    result = numerator/denominator - 1.0
+    if result < 0:
+        print("shit it is too small!!! " + str(result))
+    
+    return result    
 
 def exp_krig_sigSqr(s ,specs):
     '''
@@ -20,7 +40,7 @@ def exp_krig_sigSqr(s ,specs):
     ''' 
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, grads=True)
     
     if krig > 100:
         func = -xp100*sigSqr
@@ -44,7 +64,7 @@ def krig_sig(s , specs):
     '''
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, grads=True)
     
     func = -krig/sigSqr 
     grad =   krig*gradSigSqr/(sigSqr*sigSqr) - gradKrig/sigSqr
@@ -61,7 +81,7 @@ def atan_sig( s , specs):
     '''
 
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr = specs.kriging(s, grads=True)
     atanKrig = math.atan(krig)
     
     func     = -(atanKrig + pi2)*sigSqr 
@@ -80,7 +100,7 @@ def mod_atan_sig( s ,specs):
     ''' 
     
     #preparatory calculations
-    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, gradients=True)
+    krig , sigSqr , gradKrig , gradSigSqr= specs.kriging(s, grads=True)
     atanKrig = math.atan(krig)
      
     func     = -((atanKrig + pi2)*krig + 1)*sigSqr 

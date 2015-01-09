@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-# import kernel.kriging as kg
 import kernel.container as cot
 import kernel.truth as truth
 import kernel.sampler as smp
@@ -57,7 +56,7 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging, get avg value and std dev
-            krig , sigSqr, _, _ = specs.kriging(x[j], True) 
+            krig , sigSqr = specs.kriging(x[j], var=True) 
             f[j] = krig # set the interpolant
             sig = math.sqrt(sigSqr)
             upper[j] = krig + 1.96*sig # set the upper bound

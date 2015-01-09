@@ -6,16 +6,12 @@ Feel free to write to me about my code!
 '''
 import numpy as np
 
-from numpy import einsum as einsum
 from numpy import array as array
 from numpy import ravel as ravel
 from numpy import asarray as asarray
 
-from aux import tychonoff_solver as solver
-from aux import cov as cov
-from aux import cov_vec as cov_vec
-
-import aux
+import C._aux as _aux
+import C._krigger as _krigger
 import kernel.rap as rap
 
 class Container:   
@@ -75,7 +71,7 @@ class Container:
         as above, a dictionary of key word argument for the true log-likelihood
     '''
         
-    def __init__(self,trueLL,r=1.3, d=1.0, args =[] , kwargs = {} ):
+    def __init__(self,trueLL, r=1.3, d=1.0, args =[] , kwargs = {} ):
         '''
         we set many default parameters here. you may change them if you 
         are sure you understand what they do. change them using their 
@@ -109,8 +105,9 @@ class Container:
         
         # do we use affine invariant interpolation
 #         self.affInv = affInv  
+
     
-    def kriging(self, s, gradients=False):
+    def kriging(self, s, grads=False, var=False):
         '''
         use algortihm 2.1 from page 19 of the book "Gaussian
         Processes for Machine Learning" by Rasmussen and Williams.
@@ -139,45 +136,27 @@ class Container:
         # make sure the matrices used in the kriging computation are ready    
         if not self.matricesReady:
                 self.set_matrices()
-       
-        # unpack the variables
-        X = self.X
-        y = array( self.Fmp ) # F minus prior 
-        y = ravel(y)
-    
-        # parameters
-        r = self.r
-        d = self.d
         
-        # create the covariance vector:
-        k = cov_vec(X, s, r, d)
-        
-        # k*K^{-1} in RW's notation. Inverse cov mat times cov vec. 
-        kKinv = solver(self ,  k)
-    
-        # the kriged value is...
-        f = einsum( 'i ,i' ,  y , kKinv )
-        
-        # account for the prior we've subtracted
-        krig = f + self.prior(s)
-        
-        if gradients:
+        if (not grads) and (not var):
+            krig =  _krigger.krig( self.U, self.S, self.V,
+                                   self.Xarr, ravel(s), self.y, 
+                                   self.prior(s), self.r , self.d, 
+                                   self.reg)
+            return krig 
+        elif var and (not grads):
+            s = ravel(s)
+            prior = self.prior(s)
+            return _krigger.krig_var(self.U, self.S, self.V,
+                                     self.Xarr, s, self.y, 
+                                     prior , self.r , self.d, self.reg)
+        else:
+            s = ravel(s)
+            prior = self.prior(s)
+            grad  = self.gradPrior(s)
+            return _krigger.krig_grads( self.U, self.S, self.V, self.Xarr,
+                                         s, self.y, grad, prior, self.r,
+                                          self.d, self.reg)                                            
             
-            # the variance is...
-            sigSqr = d - einsum( 'i , i  ', k, kKinv) # d = cov(0)
-            sigSqr = max(sigSqr,0)   
-    
-            # calculate gradient of kriged value
-            xMinusX = asarray(s - X) 
-            FmpKinv = solver(self, y)
-            gradKrig = -einsum( 'i ,i , ij -> j '  , FmpKinv, k, xMinusX )/(r*r) + self.gradPrior(s)
-            
-            # calculate  gradient of sigma squared
-            gradSigSqr = 2*einsum( 'i ,i , ij -> j '  , kKinv, k, xMinusX )/(r*r)
-            return krig , sigSqr, gradKrig, gradSigSqr
-        
-        return krig 
-
     def add_pair(self,x,f):
         ''' 
         add a location, its log likelihood and the log-likelihood
@@ -189,8 +168,12 @@ class Container:
         self.F.append(f) # log-likelihood
         self.Fmp.append( f - self.prior(x) ) # Fmp is F minus prior
         
+        # create arrays
+        self.y = ravel(array( self.Fmp ))
+        self.Xarr = np.asarray(self.X)
         # we need to recalculate the matrices, so the matrices aren't ready
         self.matricesReady = False    
+   
     
     def add_point(self , x):
         '''
@@ -202,6 +185,7 @@ class Container:
         # call the LL with the parameters
         f = float(rap.rapper( x, self.trueLL , self.args, self.kwargs))
         self.add_pair(x, f)
+   
     
     def remove_last_point(self):
         '''
@@ -212,9 +196,11 @@ class Container:
         del self.X[-1] # loactions
         del self.F[-1] # log-likelihood
         del self.Fmp[-1] # Fmp is F minus prior
+        self.y = ravel(array( self.Fmp ))
         
         # we need to recalculate the matrices, so the matrices aren't ready
         self.matricesReady = False    
+        
         
     def set_r(self,r):
         '''
@@ -228,6 +214,7 @@ class Container:
         # parameters changed, so we need to recalculate stuff
         self.matricesReady = False
     
+    
     def set_prior(self ,prior ,grad):
         '''
         this is the log likelihood of the prior. we simply 
@@ -239,6 +226,9 @@ class Container:
         self.gradPrior = grad
         for i in range(len(self.X)):
             self.Fmp[i] = self.F[i] - self.prior(self.X[i])
+
+        self.y = ravel(array( self.Fmp ))
+                  
                           
     def set_matrices(self):
         ''' 
@@ -247,43 +237,12 @@ class Container:
         once the matrices are ready we set matricesReady = True
         '''
         
-        pr = [self.r, self.d]
-
-        
-#         if len(self.X) > 2 and self.affInv: 
-#             cog = sum(self.X)/len(self.X)
-#             V   = self.X - cog  
-#             B   = np.dot(V.T , V) 
-#             d   = len( self.X[0] )
-#             assert B.shape == (d,d) , "ooopsssyyy!!!1!!11!1!!"
-#             self.A  = np.linalg.inv(B)
-#             pr.append(self.A)
-#             print('-----')
-#             print("V = ")
-#             print(V)
-#             print
-#             
-#             print("B = ")
-#             print(B)
-#             print
-#             
-#             print("A = ")
-#             print(self.A)
-#             print
-#             print("d = ")
-#             print(d)
-#             print('-----')
-#         else:
-#             self.A = None
-        
-        
-        
-        cm = aux.cov_mat(self.X, *pr)    # cm  = covariance matrix
+        cm = _aux.cov_mat(self.Xarr, self.r, self.d)    # cm  = covariance matrix
         self.U, self.S, self.V = np.linalg.svd(cm, full_matrices = True, compute_uv = True)
 
-        
         # tell everybody the matrices are ready
         self.matricesReady = True
+
 
     def condition(self):
         '''
@@ -295,5 +254,3 @@ class Container:
         return max(self.S)/min(self.S)
         
         
-
-    

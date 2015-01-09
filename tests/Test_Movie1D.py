@@ -74,7 +74,7 @@ class Test(unittest.TestCase):
             
             # create the kriged curve and the limit curve
             for j in range(0,len(x)):
-                kriged[j] = specs.kriging(x[j])
+                kriged[j] = specs.kriging(x[j], False, False)
                 true[j] = specs.trueLL(x[j]) # the real log likelihood
             
             # each frame is saved delay times, so we can watch the movie at reasonable speed    

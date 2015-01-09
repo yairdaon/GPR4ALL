@@ -15,4 +15,9 @@ tests/graphics
 tests/Data
 tests/Data/**/*.mpg
 tests/Data/**/*.png
-
+*.o
+*.so
+C/build
+helper/robmon.py
+C/Test_auxC.py
+C/Test_krigger.py

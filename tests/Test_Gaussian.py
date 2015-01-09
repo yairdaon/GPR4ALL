@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
         for j in range(0,n):    
             
             # do kriging 
-            f[j] =  specs.kriging(x[j])
+            f[j] =  specs.kriging(x[j], False, False)
             
         
         # do all the plotting here
