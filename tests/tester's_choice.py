@@ -5,6 +5,7 @@ Created on Jan 1, 2015
 Feel free to write to me about my code!
 '''
 import unittest
+import C
 
 print("performing tests:")
 

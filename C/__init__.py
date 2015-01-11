@@ -1,3 +1,6 @@
 # comile and connect
-import subprocess
-print( subprocess.call("python2.7 setup.py build_ext --inplace", shell=True) )
+import os
+res = os.system("python2.7 setup.py build_ext --inplace" ) 
+if res:
+    print("FIX YOUR ERRORS PLEASE!!!!!!!!!!!!!!!!!!")
+

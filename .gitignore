@@ -15,6 +15,9 @@ tests/graphics
 tests/Data
 tests/Data/**/*.mpg
 tests/Data/**/*.png
+
+
+# C files
 *.o
 *.so
 C/build
