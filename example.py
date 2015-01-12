@@ -9,8 +9,9 @@ import numpy as np
 
 import kernel.container as cot
 import kernel.sampler as smp
-
+import preparations
 callsToLL = 0
+
 # An  example of using this package. 
 # Also, look at rap.py - very(!!) short.
 
@@ -117,4 +118,4 @@ print("Don't forget to take a look at rap.py - it is super short.")
 #===============================================================================
 # Perform tests
 #===============================================================================
-
+import tests.testers_choice
