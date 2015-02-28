@@ -1,26 +1,18 @@
-graphics/
-Data/
+# general file types to be ignored
 *.pyc
 *~
-kernel/tmp.py
 *.png
 *.mpg
-/**/*.png
-/**/*.mpg
-Data/**/*.png
-Data/**/*.mpg
-.pydevproject
-.project
-tests/graphics
-tests/Data
-tests/Data/**/*.mpg
-tests/Data/**/*.png
-
-
-# C files
 *.o
 *.so
-gpr4all/C/build
-C/Test_auxC.py
-C/Test_krigger.py
-illustrations/*.*
+.pydevproject
+.project
+
+
+#directories to be ignored
+/**/graphics/
+/**/Data/
+/**/build
+/**/ilustrations
+/**/illustrations
+/**/[Bb]in
