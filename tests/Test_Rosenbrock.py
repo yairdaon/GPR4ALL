@@ -9,7 +9,7 @@ import numpy as np
 
 import emcee as mc
 
-import helper.rosenbrock as rose
+import gpr4all.rosenbrock as rose
 
 class Test(unittest.TestCase):
 
@@ -59,8 +59,8 @@ class Test(unittest.TestCase):
   
         walkersMean = np.average(sam.flatchain, axis = 0)
               
-        xs , ys =  rose.sample_rosenbrock(indSamp)
-        independentMean = ( np.mean(xs) , np.mean(ys) )
+        samples =  rose.sample_rosenbrock(indSamp)
+        independentMean = np.mean(samples,0)
           
         diff = independentMean - walkersMean
         print( "ind samples mean = " + str(independentMean) + " MCMC mean = "

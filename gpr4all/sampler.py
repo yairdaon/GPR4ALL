@@ -12,10 +12,10 @@ import emcee as mc
 import numpy as np
 import targets
 
-import kernel.container as cot
-import kernel.truth as truth
+import container as cot
+import truth as truth
 
-import helper.kl as kl
+import kl as kl
 
 
 class Sampler(object):

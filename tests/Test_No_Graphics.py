@@ -9,12 +9,12 @@ import unittest
 import numpy as np
 
 # import kernel.kriging as kg
-import kernel.container as cot
-import kernel.sampler as smp
-import kernel.truth as truth
+import gpr4all.container as cot
+import gpr4all.sampler as smp
+import gpr4all.truth as truth
 
-import C._aux as _aux
-import helper.rosenbrock as rose
+import gpr4all._aux as _aux
+import gpr4all.rosenbrock as rose
 
 class Test(unittest.TestCase):
     '''

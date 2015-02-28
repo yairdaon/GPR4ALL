@@ -10,9 +10,9 @@ from numpy import array as array
 from numpy import ravel as ravel
 from numpy import asarray as asarray
 
-import C._aux as _aux
-import C._krigger as _krigger
-import kernel.rap as rap
+import _aux 
+import _krigger
+import rap as rap
 
 class Container:   
     '''

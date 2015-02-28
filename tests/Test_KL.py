@@ -8,7 +8,7 @@ import unittest
 
 import numpy as np
 import math
-import helper.kl as kl
+import gpr4all.kl as kl
 
 
 class Test(unittest.TestCase):

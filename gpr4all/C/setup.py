@@ -8,11 +8,11 @@ from distutils.core import setup, Extension
 import numpy.distutils.misc_util
 
 setup(
-    ext_modules=[Extension("_krigger", ["_krigger.c", "krigger.c", "aux.c"])],
+    ext_modules=[Extension("_krigger", ["gpr4all/C/_krigger.c", "gpr4all/C/krigger.c", "gpr4all/C/aux.c"])],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
 )
  
 setup(
-    ext_modules=[Extension("_aux", ["_aux.c", "aux.c"])],
+    ext_modules=[Extension("_aux", ["gpr4all/C/_aux.c", "gpr4all/C/aux.c"])],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
 )

@@ -20,7 +20,7 @@ tests/Data/**/*.png
 # C files
 *.o
 *.so
-C/build
-helper/robmon.py
+gpr4all/C/build
 C/Test_auxC.py
 C/Test_krigger.py
+illustrations/*.*

@@ -22,8 +22,8 @@ sys.path.append( os.path.abspath("") +"/helper" )
 # compile and connect
 commande = ['python2.7', 'setup.py', 'build_ext', '--inplace']
 directory =  os.path.abspath("") +"/C"
-res = subprocess.call(commande, cwd = directory)
-if res:
+#res = subprocess.call(commande, cwd = directory)
+if False:
     print("Compilation failed. go to the package C and run the following command from there:")
     print('python2.7 setup.py build_ext --inplace')
     errorOccured = True
