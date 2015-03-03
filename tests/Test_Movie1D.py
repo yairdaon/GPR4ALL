@@ -9,7 +9,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-
 import gpr4all.sampler as smp
 import gpr4all.truth as truth
 import gpr4all.container as cot
@@ -123,4 +122,8 @@ class Test(unittest.TestCase):
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
+<<<<<<< HEAD
     unittest.main()
+=======
+    unittest.main()
+>>>>>>> 7ed980d1f9c7c050d2b2397e56526447e558bb54

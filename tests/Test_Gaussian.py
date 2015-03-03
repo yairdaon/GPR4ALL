@@ -14,8 +14,6 @@ import gpr4all.container as cot
 import gpr4all.truth as truth
 
 
-
-
 class Test(unittest.TestCase):
     '''
     we take the true log likelihood to be that of a gaussian.
