@@ -19,7 +19,7 @@ class Test(unittest.TestCase):
         is 1.
         '''
         M = 10
-        delta = 0.005
+        delta = 0.1
         a  = np.arange(-M, M, delta)
         X, Y = np.meshgrid(a , a)         # create two meshgrid
         points    = np.asarray( [ np.ravel(X) , np.ravel(Y)])

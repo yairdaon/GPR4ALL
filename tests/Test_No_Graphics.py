@@ -8,11 +8,9 @@ Feel free to write to me about my code!
 import unittest
 import numpy as np
 
-# import kernel.kriging as kg
 import gpr4all.container as cot
 import gpr4all.sampler as smp
 import gpr4all.truth as truth
-
 import gpr4all._aux as _aux
 import gpr4all.rosenbrock as rose
 
