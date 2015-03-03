@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
           
         # we calculated this  analytically
         nwalkers=100
-        burn=100
+        burn=200
         nsteps = burn*10000
         indSamp = 1000000
            
@@ -66,7 +66,7 @@ class Test(unittest.TestCase):
         print( "ind samples mean = " + str(independentMean) + " MCMC mean = "
                 + str(walkersMean) +  " difference norm = " + str(np.linalg.norm(diff))  )
           
-        self.assertAlmostEqual(np.linalg.norm(diff), 0, 2)
+        self.assertAlmostEqual(np.linalg.norm(diff), 0, 1)
 
 
         
