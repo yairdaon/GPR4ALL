@@ -79,15 +79,18 @@ double *covMat(double *X, double r, double d, int nvecs, int veclen) {
 }
 
 double *covVec(double *X, double *x, double r, double d, int nvecs, int veclen) {
+	
+	
+	double result; //temporary result variable
+	double dist; // holds the distance between two vectors
+	int n; //
+	int row;
 
-	double result;
-	double dist;
-	int n;
-
+	// will hold the covariance vector
 	double *k;
 	k = malloc(nvecs * sizeof(double));
 
-	int row;
+	
 	for( row = 0 ; row < nvecs ; row++) {
 
 		result = 0.0;

@@ -16,3 +16,8 @@ setup(
     ext_modules=[Extension("_aux", ["gpr4all/C/_aux.c", "gpr4all/C/aux.c"])],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
 )
+
+setup(
+    ext_modules=[Extension("_g", ["gpr4all/C/_g.c", "gpr4all/C/g.c" , "gpr4all/C/aux.c"])],
+    include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
+)
