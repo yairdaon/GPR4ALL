@@ -1,0 +1,410 @@
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{algorithm} % algorithm package
+
+
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+
+
+
+
+
+%----------------------------------------------------------------------------------------
+% new commands
+%----------------------------------------------------------------------------------------
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% boldface caligraphic etc
+\newcommand{\ee}{\mathbb{E}}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\logl}{\mathbf{l}}
+\newcommand{\xx}{\mathbf{x}}
+\newcommand{\cov}{\text{cov}}
+\newcommand{\dd}{\mathcal{D}}
+\newcommand{\egp}{\mathbb{E}_{\mathcal{GP}}}
+\newcommand{\exo}{\mathbb{E}_{(\xn,\omega)}}
+\newcommand{\var}{\text{Var}}
+\newcommand{\vgp}{\text{Var}_{\mathcal{GP}}}
+
+% shortcuts
+\newcommand{\ddxni}{\frac{\partial}{   \partial x_i^{(n)} }} % partial wrt ith coordinate of x^(n)
+\newcommand{\gxn}{\nabla_{x^{(n)}}} % gradient wrt x^(n)
+\newcommand{\xn}{x^{(n)}} 
+\newcommand{\xii}{x^{(i)}}
+\newcommand{\xj}{x^{(j)}}
+\newcommand{\kn}{k^{(n)}}
+\newcommand{\Kinvn}{K^{(-n)}} % K^(-n)
+\newcommand{\Kinvnm}{K^{(-[n-1])}} 
+\newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pr}{\text{pr}} % prior
+\newcommand{\post}{\text{post}} % posterior
+\newcommand{\norm}[1]{||#1||} %norm
+\newcommand{\kinv}{K^{-1}} % K inverse
+\newcommand{\sqn}{\sigma ^{2 , (n)}     }
+\newcommand{\sqnm}{\sigma ^{2 , (n-1)}     }
+\newcommand{\signxn}{\sigma^{2, (n-1)} (\xn)}
+\newcommand{\munxn}{\mu ^{(n-1)}(\xn)}
+\newcommand{\vns}{v^{(n)}(s)}
+\newcommand{\vnssqr}{v^{2,(n)}(s)}
+%\newcommand{\np}{^{(n)}} % mu^(n)
+%\newcommand{\n1}{^{(n-1)}} % mu^(n-1)
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+
+\begin{document}
+
+\section{Notation}
+\begin{itemize}
+ \item $\rr^d$ the linear space over which we wish to integrate.
+ \item Superscript in parenthesis is an index: $\xj \in \rr^d$ is the $j$th vector.
+ \item Subscript is coordinate: $\xj_i$ is the $i$th coordinate of $\xj \in \rr^d$.
+ \item $k: \rr ^d \times \rr ^d \to \rr$ the covariance function (kernel).
+ \item $(\Omega, \mathcal{F}, \mathbb{P})$ the probability space of the gaussian process. Changes as we condition.
+ \item $f : \rr^d \times \Omega \to \rr$ a gaussian process.
+ \item $\kn: \rr^d \to \rr^n$ is such that $\kn_j(s) = k(\xj , s)$ where $1 \leq j \leq n$. 
+ \item $K^{(n)} \in \rr^{ n\times n} $ is a Gram matrix: $K^{(n)}_{ij} = k(\xii , \xj)$.
+ \item $\Kinvn = [K^{(n)}]^{-1}$.
+ \item $\Kinvnm = [K^{(n-1)}]^{-1}$.
+ \item Let $V: \rr^d \to \rr$ and $x \in \rr^d$. Then $\egp[ V(x) ]=\egp [V(x, \cdot)] =  \int_{\Omega} V(x, \xi) \mathbb{P}(d\xi) $
+\end{itemize}
+
+
+\section{Block Inversion}
+We need to innvert covariance matrices. Moreover, we need to invert
+$$ \left( \begin{array}{cc}
+K   & k \\
+k^t & c \end{array} \right)
+$$
+
+where $K$ is a symmetric matrix, $k$ is a vector and $c$ is a scalar.
+The inverse is given by:
+
+$$ \left( \begin{array}{cc}
+\bar{K}   &  \bar{k} \\
+\bar{k}^t   &  \bar{c} \end{array} \right)
+$$
+with:
+\begin{align}
+ \begin{split}
+\bar{K} &=  \kinv + K^{-1}k\bar{c}k^t\kinv\\
+\bar{k} &=  -\kinv k\bar{c}\\
+\bar{c} &= (c - k^t\kinv k)^{-1} 
+ \end{split}
+\end{align}
+
+\section{A Lemma}
+We use the block inversion to prove the following:
+\begin{lemma}
+Let $f_n = \mu^{(n-1)}(\xn) =  k^{(n-1)}(\xn)K^{(-[n-1])}f^{(n-1)}$. Then $\mu^{(n-1)}(s) = \mu^{(n)}(s)$.
+\end{lemma}
+\begin{proof}
+ For this proof we fix $s\in \rr ^{d}$ and denote:
+\begin{itemize}
+ \item $\kinv := K^{(-[n-1])}$ 
+ \item $k : = k^{(n-1)}(\xn)$
+ \item $c := k(\xn,\xn)$
+ \item $f = f^{(n-1)}$ 
+ \item $a : = \mu^{(n-1)}(\xn) = k^t\kinv f$ (using the above notation)
+ \item $k(s) = k^{(n-1)}(s)$
+ \item $\bar{c} := (c - k^t\kinv k)^{-1}$. 
+ \item $a = \mu(s) : = \mu^{(n-1)}(s)$
+\end{itemize}
+Then $\mu^{(n-1)}(s) = k^t\kinv f$ and we may express $\mu^{(n)}(s)$ using the block inversion.
+
+
+\begin{align}
+ \begin{split}
+%
+\mu^{(n)}(s) &= \left( \begin{array}{cc}
+ k^t(s)  & k(\xn, s)  
+\end{array} \right)
+%
+%
+\left( \begin{array}{cc}
+\kinv + \kinv k \bar{c} k^t \kinv  &  -\kinv k \bar{c} \\
+-k^t\kinv \bar{c}   &  \bar{c}
+ \end{array} \right)
+%
+%
+\left( \begin{array}{cc}
+ f  \\ a 
+ \end{array} \right) \\\\
+%
+%
+%
+%
+% new line
+%
+%
+%
+%
+&= \left( \begin{array}{cc}
+ k^t(s)  & k(\xn, s)
+ \end{array} \right)
+%
+%
+\left( \begin{array}{cc}
+\kinv + \kinv k \bar{c} k^t \kinv  &  -\bar{c}\kinv k  \\
+-\bar{c}k^t\kinv   & \bar{c}
+ \end{array} \right)
+%
+%
+\left( \begin{array}{cc}
+ f  \\ a
+  \end{array} \right) \\\\
+%
+%
+&=  k^t(s)(\kinv + \kinv k \bar{c}k^t \kinv )f - a\bar{c} k^t(s) \kinv k  -\bar{c} k(\xn,s) k^t\kinv f + \bar{c}a k(\xn,s) \\\\
+%
+%%
+%
+&=  k^t(s)\kinv f + \bar{c}[k^t(s)\kinv k\cdot  k^t \kinv f - a k^t(s) \kinv k \\
+ &\ \ \ \ \ \ \ \ \ \ \ \ \ - k(\xn, s) k^t\kinv f + a k(\xn,s)] \\\\
+%
+%
+%
+&= \mu (s) + \bar{c}[k^t(s)\kinv k\cdot  \mu (\xn) -\mu(\xn) k^t(s) \kinv k \\
+ &\ \ \ \ \ \ \ \ \ \ \ \ \ - k(\xn, s) \mu(\xn) + \mu(\xn) k(\xn,s)] \\\\
+%
+%
+%
+& = \mu(s) = \mu^{(n-1)} (s)
+\end{split}
+\end{align}
+\end{proof}
+
+The bottom line is that the observation $f( \xn ,\omega) = \mu^{(n-1)}(\xn)$ changes nothing.
+
+
+
+
+\section{Average Variance}
+
+
+
+We seek $\argmin_{\xn}$ of
+\begin{align}
+ \begin{split}
+%
+&\int  \vgp[ \exp( k^{(n)}(s)K^{(-n)}f + f_\pr(s) )]  ds  \\\\
+%
+&=\int e^{2f_\pr(s)}  \vgp[ \exp(\sum_{i,j=1}^{n} k(s,\xii)K_{ij}^{(-n)}f_j )  ]  ds\\\\
+%
+&=\int e^{2f_\pr(s)}  \vgp[ \exp(\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + \sum_{i=1}^n k(s,\xii)K_{in}^{(-n)}f_n(\omega) )  ]  ds\\\\
+%
+&=\int e^{2f_\pr(s)}  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j)  \vgp[\exp( \sum_{i=1}^n k(s,\xii)K_{in}^{(-n)}f_n(\omega) ) ] ds\\\\
+%
+&=\int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \vgp [\exp( \vns f_n )]  ds,\\\\
+%
+ \end{split}
+\end{align}
+
+
+where we denote $\vns := \sum_{i=1}^n k(s,\xii)\Kinvn_{in}$. By our assumptions, $\vns f_n(\omega) \sim \mathcal{N}(\vns\munxn,
+\vnssqr \signxn)$.
+This means that 
+
+$$
+\vgp[e^{\vns f_n(\omega)}] = (e^{\vnssqr\signxn} - 1) \exp( 2\vns\munxn + \vnssqr\signxn )
+$$
+
+We plug this in the above series of equalities and define $f_n :=\munxn, \sigma^2: = \signxn$:
+
+\begin{align}
+ \begin{split}
+&= \int  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,x_i)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \cdot 
+	      (e^{\vnssqr\sigma^2 } - 1)\exp( 2\vns f_n + \vnssqr \sigma^2 )  ds,\\
+%
+&= \int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,x_i)K_{ij}^{(-n)}f_j + 2\vns f_n + 2f_\pr(s)) 
+	(e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds,\\
+%%
+&= \int \exp(2\kn(s)\Kinvn f + 2f_\pr(s)) \cdot  (e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds\\\\
+%
+%
+%
+&= \int \exp(2\kn(s)\Kinvn f + 2f_\pr(s)) (e^{2 \vnssqr\sigma^2 } - e^{\vnssqr \sigma^2 }) ds\\\\
+%
+%
+%
+&=\int \exp(2k^{(n-1)}(s)\Kinvnm f + 2f_\pr(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr \sigma^2 }) ds\\\\ 
+%
+%
+%
+%
+&=\int \exp(2\mu^{(n-1)}(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr \sigma^2 }) ds \text{ (by the lemma) }\\\\ 
+%
+%
+\end{split}
+\end{align}
+
+We now focus on the exponents using the block inversion. We take $k = \kn(\xn), K = \Kinvnm, c = k(\xn,\xn)$ and note 
+that in the matrix block inversion, $\bar{c} =\frac{1}{\sqnm (\xn)}$
+
+\begin{align}
+ \begin{split}
+%
+%
+  \vnssqr \sqnm(\xn) &= [\sum_{i=1}^n k(s,\xii)\Kinvn_{in}]^2\sqnm(\xn)  \\\\
+% 
+%
+%
+  &= [k(s, \xn) \bar{c} + < k^{(n-1)}(s) ,  -\bar{c}\Kinvnm k^{(n-1)}(\xn) >]^2\sqnm(\xn)  \\\\
+% 
+%
+%
+  &= k(s, \xn) - < k^{(n-1)}(s) ,  \Kinvnm k^{(n-1)}(\xn) >  \\
+\end{split}
+\end{align}
+
+We need to differentiate this wrt $\xn$.
+
+
+
+\section{Derivatives}
+
+Start with easy sneezy.
+\begin{align}
+ \begin{split}
+  \gxn k(\xn,s) &= \gxn c\exp(-\frac{||\xn - s||^2}{2r^2} )\\
+%
+&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
+%
+&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
+%
+&= -\frac{k(\xn,s)}{2r^2} \gxn||\xn - s||^2 \\
+%
+&= -\frac{k(\xn,s)}{r^2} (\xn-s)\\
+%
+&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\\
+ \end{split}
+\end{align}
+
+And thus:
+
+\begin{align}
+ \begin{split}
+  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \left [k(s, \xn) - < k^{(-[n-1])}(s) ,  \Kinvnm k^{(-[n-1])}(\xn) > \right] \\\\
+%
+%
+%
+ &= -\frac{k(\xn ,s)}{r^2} (\xn-s) - \gxn \left[ \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} k(\xj, \xn) \right]\\\\
+%
+%
+%
+ &= -\frac{k(\xn ,s)}{r^2} (\xn-s) +  \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} \frac{k(\xn ,\xj)}{r^2} (\xn-\xj) \\\\
+ \end{split}
+\end{align}
+
+In what follows, we hold $n$ fixed and denote $g(s) : = v_n^2(s)\sqnm(\xn)$ and $\nabla g(s)$ its gradient wrt $\xn$. We wish to find 
+$\argmin_{\xn}$ of the average variance and so we need to find derivatives.
+
+\begin{align}
+ \begin{split}
+ & \gxn \int \exp(2\mu^{(n-1)}(s)) (e^{2v^2_n(s)\sigma^2 } - e^{v^2_n(s)\sigma^2 }) ds \\
+%
+%
+% 
+&=  \int \exp(2\mu^{(n-1)}(s)) \gxn (e^{2v^2_n(s)\sigma^2 } - e^{v^2_n(s)\sigma^2 }) ds \\
+%
+%
+%
+%
+%
+% 
+&=  \int \exp(2\mu^{(n-1)}(s)) \nabla (e^{2g(s) } - e^{g(s)}) ds \\
+%
+%
+% 
+%
+%
+%
+% 
+&=  \int \exp(2\mu^{(n-1)}(s)) (2e^{2g(s) } - e^{g(s)})\nabla g(s)\  ds \\
+%
+%
+% 
+%
+%
+%
+% 
+&\approx \frac{1}{n_s}  \sum_{k=1}^{n_s} (2e^{2g(Z_k) } - e^{g(Z_k)})\nabla g(Z_k), \\
+%
+%
+% 
+ \end{split}
+\end{align}
+
+where $Z_k$ are drawn using the log likelihood $2\mu^{(n-1)}(\cdot)$ (note the $2$ in there). We do not need to normalize it since it does not depend 
+on $x^{(n)}$ and so this normalization is only a constant factor.
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+We would like to minimize the above expression with respect to $\xn$. We need detivatives. Luckily, if we take $f_n = \mu_{n-1}(\xn)$, then 
+the product $\kn(s)\Kinvn f$ does not change! We need to differentiatae every term that 
+dependes on $\xn$. One is $\kn(s)\Kinvn f$, with $f_n$ non random and defined above. The harder one is 
+$$
+v_n^2(s)\sigma^2 = v_n^2(s) \sigma^2_{n-1}(\xn)
+$$
+The derivative of the second term in the product is something we already have.
+The nice thing is that we can now use the theorem and conclude that
+$$
+\argmin_{\xn} \int \vgp [e^{\mu^{(n)}(s)} ]ds = \argmin_{\xn} \int (e^{2v^2_n(s)\sigma^2 } - e^{v^2_n(s)\sigma^2 })e^{\mu^{(n-1)}(s)}ds
+$$
+
+Now we need to differentiate $v_n(s)\sigma$
+\end{document}
