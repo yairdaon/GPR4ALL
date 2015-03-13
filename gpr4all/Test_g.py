@@ -39,7 +39,7 @@ def gNaive(xn, s ,specs):
 	gValue   =  _aux.cov(s,xn, specs.r, specs.d) - np.einsum( 'i ,i' ,ksKinv , kxn)
 	sigSqr   =  specs.kriging(xn, grads = False, var = True)[1]
 	
-	return       gValue#*gValue/sigSqr
+	return       gValue*gValue/sigSqr
 	
 def gradNaive(xn, s, specs):
 	grad = -_aux.cov(xn,s, specs.r , specs.d)/(r*r)*(xn -s)
@@ -79,3 +79,13 @@ print( "g using c     = "  + str(gFromC) )
 print( "g using py    = "  + str(gFromPy))
 print( "grad using c  = "  + str(gradFromC) )
 print( "grad using py = "  + str(gradFromPy))
+
+
+
+
+
+
+
+
+gradKoverSig = _g.gradKoverSig(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
+print gradKoverSig

@@ -43,7 +43,7 @@ struct gStruct g(double *U, double *S, double *V,
 	}
 
 	// final value of g
-	//gValue = gValue*gValue/sigSqr;
+	gValue = gValue*gValue/sigSqr;
 
 	// the left term in  the expression for grad g
 	double tmp = -cov(xn ,x, r, d, veclen)/(r*r);

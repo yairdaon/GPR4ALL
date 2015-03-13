@@ -25,3 +25,12 @@ gpr4ll/_g.so:	$(SO_FILES)
 gpr4all/_g.so :	$(C_FILES) 		
 	make build
 
+
+
+# making a pdf 
+pdf: tex/calcs.pdf
+	make tex/calcs.pdf
+
+tex/calcs.pdf: tex/calcs.tex
+	pdflatex tex/calcs.tex
+	rm -vf tex/*.aux tex/*.log tex/*.out
