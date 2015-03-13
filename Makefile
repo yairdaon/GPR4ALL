@@ -1,31 +1,27 @@
-build:
-	python gpr4all/C/setup.py build_ext --inplace
+C_FILES  = gpr4all/C/*.c gpr4all/C/*.h
+SO_FILES = gpr4all/*.so
+
+
+build: $(C_FILES) 
+	python2.7 gpr4all/C/setup.py build_ext --inplace
 	rm -rvf build
-	#mv build gpr4all/C	
-	mv _aux.so	gpr4all
-	mv _krigger.so gpr4all
-	mv _g.so gpr4all
-	mkdir graphics
-	mkdir Data
-	mkdir Data/Movie1DFrames
-	mkdir Data/Movie2DContourFrames
-	clear
-	tree
+	mv *.so	gpr4all
+	mkdir -p graphics Data Data/Movie1DFrames Data/Movie2DContourFrames
 
 clean:
-	rm -vf *.so*
-	rm -vf *~
-	rm -rvf gpr4all/C/*.c~
-	rm -rvf gpr4all/C/*.h~
-	rm -vf gpr4all/*.so
-	rm -rvf gpr4all/C/build
-	rm -rvf build
-	rm -rvf gpr4all/*.pyc
-	rm -rvf gpr4all/C/*.pyc
-	rm -vf  tests/*.pyc
-	rm -rvf graphics
-	rm -rvf Data
-	clear	
-	tree
+	rm -rvf gpr4all/*.pyc gpr4all/C/*.pyc graphics Data build gpr4all/C/build 
+	rm -rvf gpr4all/C/*.h~ gpr4all/C/*.c~ *~ *.so*  tests/*.pyc gpr4all/*.so
 	
+push:
+	git push https://github.com/yairdaon/GPR4ALL
+
+
+g: gpr4all/_g.so
+		python2.7 gpr4all/Test_g.py
+gpr4ll/_g.so:	$(SO_FILES)
+	make build
+
+
+gpr4all/_g.so :	$(C_FILES) 		
+	make build
 

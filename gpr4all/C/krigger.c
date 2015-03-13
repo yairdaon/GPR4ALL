@@ -144,6 +144,7 @@ double *krigVar(double *U, double *S, double *V,
 	for(i = 0 ; i < nvecs ; i++ ) {
 		sigSqr = sigSqr - k[i]*kKinv[i];
 	}
+
 	// ...ensure variance is positive
 	if (sigSqr < 0.0 ) {
 		sigSqr = 0.0;
@@ -195,4 +196,47 @@ double krig(double *U, double *S, double *V,
 }
 
 
+
+double justVar(double *U, double *S, double *V,
+			 double *X, double *x,
+			 double r, double d, double reg,
+			 int nvecs, int veclen) {
+	/*
+	 * do krigging, return only the variance
+	 * dimensions of variables:
+	 * U	 is an nvecs    by   nvecs     matrix
+	 * V	 is an nvecs    by   nvecz     matrix
+	 * S	 is an nvecs    by   1         vector
+	 * X	 is an nvecs    by   veclen    matrix
+	 * x	 is an veclen   by   1         vector
+	 * y	 is an nvecs    by   1         vector
+	 */
+
+
+	// allocate memory and initialize
+	int i;
+
+	// create covariance vector
+	double *k     = covVec(X, x, r, d, nvecs, veclen);
+
+	// multiply by inverse of covariance matrix
+	double *kKinv = solver(U, S, V, k , reg, nvecs);
+
+	// variance is  cov(0,0) - k * K^{-1} * k
+	double sigSqr = d;
+	for(i = 0 ; i < nvecs ; i++ ) {
+		sigSqr = sigSqr - k[i]*kKinv[i];
+	}
+
+	// ...ensure variance is positive
+	if (sigSqr < 0.0 ) {
+		sigSqr = 0.0;
+	}
+
+
+	free(k);
+	free(kKinv);
+	return sigSqr;
+
+}
 

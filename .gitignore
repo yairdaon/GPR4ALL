@@ -1,5 +1,5 @@
 # general file types to be ignored
-*.pyc
+*.py[cod]
 *~
 *.png
 *.mpg
@@ -7,6 +7,12 @@
 *.so
 .pydevproject
 .project
+*.pdf
+*.dvi
+*.out
+*.log
+*.aux
+*.backup
 
 
 #directories to be ignored

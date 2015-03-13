@@ -1,4 +1,3 @@
-
 \documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
 
 \usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
@@ -62,6 +61,7 @@
 \newcommand{\xii}{x^{(i)}}
 \newcommand{\xj}{x^{(j)}}
 \newcommand{\kn}{k^{(n)}}
+\newcommand{\knm}{k^{(n-1)}}
 \newcommand{\Kinvn}{K^{(-n)}} % K^(-n)
 \newcommand{\Kinvnm}{K^{(-[n-1])}} 
 \newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
@@ -280,11 +280,11 @@ that in the matrix block inversion, $\bar{c} =\frac{1}{\sqnm (\xn)}$
 % 
 %
 %
-  &= [k(s, \xn) \bar{c} + < k^{(n-1)}(s) ,  -\bar{c}\Kinvnm k^{(n-1)}(\xn) >]^2\sqnm(\xn)  \\\\
+  &= \frac{[k(s, \xn) \bar{c} + < k^{(n-1)}(s) ,  -\bar{c}\Kinvnm k^{(n-1)}(\xn) >]^2}{\sqnm(\xn)}  \\\\
 % 
 %
 %
-  &= k(s, \xn) - < k^{(n-1)}(s) ,  \Kinvnm k^{(n-1)}(\xn) >  \\
+  &= \frac{[k(s, \xn) - < k^{(n-1)}(s) ,  \Kinvnm k^{(n-1)}(\xn) > ]^2}{\sqnm(\xn)} \\
 \end{split}
 \end{align}
 
@@ -311,21 +311,79 @@ Start with easy sneezy.
  \end{split}
 \end{align}
 
+In the following, gradient is taken with respect to $s$.
+
+\begin{align}
+ \begin{split}
+  \nabla \sqn (s) &= \nabla [ c - \kn(s) \Kinvn \kn(s)]\\\\
+%
+%
+%
+&= -2 \kn(s) \Kinvn \nabla\kn(s)\\\\
+%
+%
+%
+&= -2 \sum_{i,j=1}^{n} \kn(s)_j \Kinvn_{ji} \nabla k (s, x_i)\\\\
+%
+%
+%
+&= 2 \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} \frac{k(\xii ,s)}{r^2} (s-\xii)\\\\
+%
+%
+%
+&= \frac{2}{r^2} \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} k(\xii ,s) (s-\xii)\\\\
+ \end{split}
+\end{align}
+
+Consequently:
+
+\begin{align}
+ \begin{split}
+  \gxn \signxn &= \frac{2}{r^2} \sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+ \end{split}
+\end{align}
+
 And thus:
 
 \begin{align}
  \begin{split}
-  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \left [k(s, \xn) - < k^{(-[n-1])}(s) ,  \Kinvnm k^{(-[n-1])}(\xn) > \right] \\\\
+  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
 %
 %
 %
- &= -\frac{k(\xn ,s)}{r^2} (\xn-s) - \gxn \left[ \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} k(\xj, \xn) \right]\\\\
+&\gxn \frac{ k(s, \xn) }{\signxn} - \gxn \frac {< \knm (s) ,  \Kinvnm \knm (\xn) >}{\signxn} \\\\
 %
 %
 %
- &= -\frac{k(\xn ,s)}{r^2} (\xn-s) +  \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} \frac{k(\xn ,\xj)}{r^2} (\xn-\xj) \\\\
  \end{split}
 \end{align}
+
+and we calculate them one by one. We obviously need the following calculation (we ignore the $(\signxn)^2$ term on the denomiantor, for convenience):
+
+\begin{align}
+ \begin{split}
+\gxn \frac{ k(s, \xn) }{\signxn} &= \gxn k(s, \xn)\signxn - k(s, \xn)\gxn\signxn \\\\
+%
+%
+%
+&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\signxn -  \\
+	   & \ \ \ \ \ \ k(s, \xn) \frac{2}{r^2}\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+%
+%
+&= -\frac{k(\xn ,s)}{r^2} [(\xn -s) \signxn \\ 
+     & \ \ \ \ \ \ \ \ \ + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+ \end{split}
+\end{align}
+
+And thus:
+
+\begin{align}
+ \begin{split}
+\gxn \frac{ k(s, \xn) }{\signxn} & = -\frac{k(\xn ,s)}{r^2(\signxn)^2} [(\xn -s) \signxn \\ 
+		& \ \ \ \ \ \ \ \ \ + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+ \end{split}
+\end{align}
+
 
 In what follows, we hold $n$ fixed and denote $g(s) : = v_n^2(s)\sqnm(\xn)$ and $\nabla g(s)$ its gradient wrt $\xn$. We wish to find 
 $\argmin_{\xn}$ of the average variance and so we need to find derivatives.
@@ -372,6 +430,30 @@ on $x^{(n)}$ and so this normalization is only a constant factor.
 
 \end{document}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ &= -\frac{k(\xn ,s)}{r^2} (\xn-s) - \gxn \left[ \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} k(\xj, \xn) \right]\\\\
+%
+%
+%
+ &= -\frac{k(\xn ,s)}{r^2} (\xn-s) +  \sum_{i,j = 1}^{n-1} k(\xii , s) \Kinvnm_{ij} \frac{k(\xn ,\xj)}{r^2} (\xn-\xj) \\\\
 
 
 

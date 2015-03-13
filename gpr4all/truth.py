@@ -32,7 +32,7 @@ def double_well_1D(s):
     '''
     this log likelihood is a double well potential (upside down)
     '''
-    return -2*s**4 + 5*s**2 -3.25
+    return -2.0*s**4 + 5.0*s**2 -3.25
 
 def big_poly_1D(s):
     '''
@@ -52,7 +52,7 @@ def zero(s):
     identically zero, used when the LL 
     is of no importance
     '''
-    return 0
+    return 0.0
 
 def dummy(s):
     '''

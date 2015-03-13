@@ -142,7 +142,8 @@ class Container:
                                    self.Xarr, ravel(s), self.y, 
                                    self.prior(s), self.r , self.d, 
                                    self.reg)
-            return krig 
+            return krig
+            
         elif var and (not grads):
             s = ravel(s)
             prior = self.prior(s)

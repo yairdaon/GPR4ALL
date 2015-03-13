@@ -81,12 +81,38 @@ static PyObject *_g(PyObject *self, PyObject *args)
     int Slen   = (int)PyArray_DIM(S_array , 0); //  == nvecs
     int xlen   = (int)PyArray_DIM(x_array , 0); //  == veclen
 
-    if (    (Xlen != nvecs) || (xnlen != veclen)
-	 || (Slen != nvecs) || (xlen  != veclen) ) {
+    if ( Xlen != nvecs ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimensions don't match!!");
+        							"Dimension mismatch:  Xarr.shape[0] != U.shape[1].");
     		return NULL;
         }
+
+
+    if ( xnlen != veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  Xarr.shape[1] != len(x).");
+    		return NULL;
+        }
+
+
+
+    if ( Slen != nvecs ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  len(S) != U.shape[1].");
+    		return NULL;
+        }
+
+
+
+    if ( xlen  != veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  len(x) != X.shape[1].");
+    		return NULL;
+        }
+
+
+
+
 
     /* Get pointers to the data as C-types. */
     double *U    = (double*)PyArray_DATA(U_array);
@@ -112,9 +138,10 @@ static PyObject *_g(PyObject *self, PyObject *args)
     /* Build the output tuple */
 
     // unpack the struct
-    double * grad    = values.grad;
-    double   gValue  = values.gValue;
+    double * grad    =  values.grad;
+    double   gValue  =  values.gValue;
     // free(values); // not sure whether i need to free or not
+
 
     // create gradient of krig python object
     npy_intp dims[1] = {veclen}; // auxilliary array
@@ -125,7 +152,7 @@ static PyObject *_g(PyObject *self, PyObject *args)
 
 
     /* Build the output tuple */
-	PyObject *ret = Py_BuildValue("dO", gValue, grad );
+	PyObject *ret = Py_BuildValue("dO", gValue, pyGrad );
 	Py_DECREF(pyGrad);
 
 	return ret;

@@ -94,12 +94,34 @@ static PyObject *_krigger_krigGrads(PyObject *self, PyObject *args)
     int slen   = (int)PyArray_DIM(S_array, 0);
     int glen   = (int)PyArray_DIM(g_array, 0);
 
-    if ( (nvecs!=ylen) || (xlen!=veclen)
-    		 || (slen!=nvecs)|| (glen!=veclen) ) {
+  
+    if ( nvecs!=ylen ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimensions don't match!!");
+        							"Dimension mismatch:  len(y) != U.shape[1].");
     		return NULL;
         }
+
+
+    if ( xlen!=veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  Xarr.shape[1] != len(x).");
+    		return NULL;
+        }
+
+
+    if ( slen!=nvecs ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  len(s) != U.shape[1].");
+    		return NULL;
+        }
+
+
+    if ( glen!=veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  Xarr.shape[1] != len(g).");
+    		return NULL;
+        }
+
 
     /* Get pointers to the data as C-types. */
     double *U    = (double*)PyArray_DATA(U_array);
@@ -211,19 +233,39 @@ static PyObject *_krigger_krigVar(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    /* What are the dimensions? */
-    int nvecs  = (int)PyArray_DIM(U_array, 0);
+
+
+
+	/* What are the dimensions? */
+    int nvecs  = (int)PyArray_DIM(U_array, 1);
     int xlen   = (int)PyArray_DIM(x_array, 0);
     int veclen = (int)PyArray_DIM(X_array, 1);
     int ylen   = (int)PyArray_DIM(y_array, 0);
     int slen   = (int)PyArray_DIM(S_array, 0);
 
 
-    if ( (nvecs!=ylen) || (xlen!=veclen) || (slen!=nvecs) ) {
+  
+    if ( nvecs!=ylen ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimensions don't match!!");
+        							"Dimension mismatch:  len(y) != U.shape[1].");
     		return NULL;
         }
+
+
+    if ( xlen!=veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  Xarr.shape[1] != len(x).");
+    		return NULL;
+        }
+
+
+    if ( slen!=nvecs ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  len(s) != U.shape[1].");
+    		return NULL;
+        }
+
+
 
     /* Get pointers to the data as C-types. */
     double *U    = (double*)PyArray_DATA(U_array);
@@ -295,19 +337,38 @@ static PyObject *_krigger_krig(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    /* What are the dimensions? */
-    int nvecs  = (int)PyArray_DIM(U_array, 0);
+
+
+
+	/* What are the dimensions? */
+    int nvecs  = (int)PyArray_DIM(U_array, 1);
     int xlen   = (int)PyArray_DIM(x_array, 0);
     int veclen = (int)PyArray_DIM(X_array, 1);
     int ylen   = (int)PyArray_DIM(y_array, 0);
     int slen   = (int)PyArray_DIM(S_array, 0);
 
 
-    if ( (nvecs!=ylen) || (xlen!=veclen) || (slen!=nvecs) ) {
+
+    if ( nvecs!=ylen ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimensions don't match!!");
+        							"Dimension mismatch:  len(y) != U.shape[1].");
     		return NULL;
         }
+
+
+    if ( xlen!=veclen ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  Xarr.shape[1] != len(x).");
+    		return NULL;
+        }
+
+
+    if ( slen!=nvecs ) {
+        	PyErr_SetString(PyExc_RuntimeError,
+        							"Dimension mismatch:  len(s) != U.shape[1].");
+    		return NULL;
+        }
+
 
     /* Get pointers to the data as C-types. */
     double *U    = (double*)PyArray_DATA(U_array);

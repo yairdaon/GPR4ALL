@@ -34,23 +34,21 @@ def gNaive(xn, s ,specs):
 		
 	ks       = _aux.cov_vec(specs.Xarr, s, specs.r, specs.d)
 	ksKinv   = _aux.solver(specs.U, specs.S, specs.V, ks, specs.reg)
-	kxn      = _aux.cov_vec(specs.Xarr, s, specs.r, specs.d)
+	kxn      = _aux.cov_vec(specs.Xarr, xn, specs.r, specs.d)
 
-	gValue   = _aux.cov(s,xn, specs.r, specs.d) - np.einsum( 'i ,i' ,ksKinv , kxn)
+	gValue   =  _aux.cov(s,xn, specs.r, specs.d) - np.einsum( 'i ,i' ,ksKinv , kxn)
 	sigSqr   =  specs.kriging(xn, grads = False, var = True)[1]
 	
-	return       gValue*gValue/sigSqr
+	return       gValue#*gValue/sigSqr
 	
 def gradNaive(xn, s, specs):
 	grad = -_aux.cov(xn,s, specs.r , specs.d)/(r*r)*(xn -s)
-	ks  = _aux.cov_vec(specs.Xarr, s, specs.r, specs.d)
-	kxn = _aux.cov_vec(specs.Xarr, xn, specs.r, specs.d)
+	ks   = _aux.cov_vec(specs.Xarr, s, specs.r, specs.d)
+	kxn  = _aux.cov_vec(specs.Xarr, xn, specs.r, specs.d)
 	ksKinv  = _aux.solver(specs.U, specs.S, specs.V, ks, specs.reg)
 
 	for i in range(len(specs.X)):
 		grad = grad + ksKinv[i] * kxn[i]*(xn - specs.X[i])/(specs.r*specs.r)
-
-	print(grad)
 	
 	return grad
 
@@ -66,7 +64,7 @@ specs.add_point( np.array([-1.0 ]) )
 specs.set_matrices()  
 
 # x is where derivative is calculated
-xn         =    np.array( [-4.55 ])
+xn         =    np.array( [ 2.55 ])
 s          =    np.array( [ 3.47 ])
 
 # the derivative calculated using calculus differentiation
@@ -81,10 +79,3 @@ print( "g using c     = "  + str(gFromC) )
 print( "g using py    = "  + str(gFromPy))
 print( "grad using c  = "  + str(gradFromC) )
 print( "grad using py = "  + str(gradFromPy))
-
-	   
-
-
-if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
