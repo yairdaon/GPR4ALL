@@ -51,13 +51,13 @@ struct gStruct g(double *U, double *S, double *V,
 
 	
 	// calcualte the coefficients of the gradients, from pdf
-	double firstCoef   = (krig - cv*cv)/(sigSqr*sigSqr);
-	double secondCoef  = -2.0*cv/(r*r*sigSqr);
-	double thirdCoef   = -2.0/sigSqr;	
+	double firstCoef   = -2.0*cv/(r*r*sigSqr);
+	double secondCoef  = -2.0/sigSqr;
+	double thirdCoef   = -tmp*tmp/(sigSqr*sigSqr);	
 
-	for (j = 0 ; j < veclen ; j++) {
-		grad[j] = firstCoef*gradSig2[j] + secondCoef*(xn[j] - x[j]) 
-						+ thirdCoef*gradKrig[j];
+	for ( j = 0 ; j < veclen ; j++) {
+		grad[j] = firstCoef*(xn[j] - x[j]) + secondCoef*gradKrig[j] 
+						+ thirdCoef*gradSig2[j];
 	}
 
 

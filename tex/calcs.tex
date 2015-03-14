@@ -347,51 +347,27 @@ And thus:
 
 \begin{align}
  \begin{split}
-  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
+  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
 %
 %
 %
-&=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \gxn \frac {< \knm (s) ,  \Kinvnm \knm (\xn) >^2}{\signxn} \\\\
+&=\frac{ 2\gxn[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]\signxn}{(\signxn)^2} \\
+	    &\bars- \frac{\gxn \signxn [k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2} \\\\
 %
 %
 %
-%
-%
-&=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \gxn \frac {< \knm (s)  \Kinvnm ,  \knm (\xn) >^2}{\signxn} \\\\
-%
-%
-%
-%
- &=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \frac { 2\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > }{\signxn}\\
-	      &\bars +\frac{ \gxn \signxn< \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\\\\
+&=\frac{ 2}{\signxn} \gxn[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]\\
+	    &\bars- \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2}\gxn \signxn \\\\
 %
 %
 %
 %
-&=\gxn \frac{ k^2(s, \xn) }{\signxn} \\
-	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
-	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
+&=\frac{ 2}{\signxn} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > ]\\
+	    &\bars - \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2}\gxn \signxn \\\\
 %
 %
 %
-%
-&=\frac{ 2\signxn \gxn k(s, \xn)}{(\signxn)^2} -\frac{k^2(s,\xn) \gxn \signxn  }{(\signxn)^2} \\
-	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
-	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
-%
-%
-%
-%
-&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2} -  \frac{k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
-	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
-	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
-%
-%
-%
-%
-&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) >  - k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
-	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
-	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
 %
 %
 %
@@ -470,6 +446,63 @@ on $x^{(n)}$ and so this normalization is only a constant factor.
 
 
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%
+ &=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \frac { 2\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > }{\signxn}\\
+	      &\bars +\frac{ \gxn \signxn< \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\\\\
+%
+%
+%
+%
+&=\gxn \frac{ k^2(s, \xn) }{\signxn} \\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
+	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
+%
+%
+%
+%
+&=\frac{ 2\signxn \gxn k(s, \xn)}{(\signxn)^2} -\frac{k^2(s,\xn) \gxn \signxn  }{(\signxn)^2} \\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
+	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
+%
+%
+%
+%
+&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2} -  \frac{k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
+	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
+%
+%
+%
+%
+&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) >  - k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
+	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
+%
+%
+%
+%
+
+
+
+
+
+
+
+
 
 
 
