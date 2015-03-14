@@ -4,7 +4,6 @@ Created on Mar 4, 2015
 @author: Yair Daon. email: fisrtname.lsatname@gmail.com
 Feel free to write to me about my code!
 '''
-
 import unittest
 import numpy as np
 
@@ -64,7 +63,7 @@ specs.add_point( np.array([-1.0 ]) )
 specs.set_matrices()  
 
 # x is where derivative is calculated
-xn         =    np.array( [ 2.55 ])
+xn         =    np.array( [ 2.99 ])
 s          =    np.array( [ 3.47 ])
 
 # the derivative calculated using calculus differentiation
@@ -74,18 +73,40 @@ gradFromPy = gradNaive(xn,s,specs)
 # derivative calculated using finite differences
 gFromC , gradFromC  = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
 
+
+
+
+print 
+print
+print
+
+
+
+
+
+
+#gradKoverSig  = _g.gradKoverSig(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
+#kOverSig      = _aux.cov(s, xn, r, d)/specs.kriging(xn, grads = False, var = True)[1]
+
+h = np.array([0.00001])
+#kOverSigPlusH     = _aux.cov(s, xn+h, r, d)/specs.kriging(xn+h, grads = False, var = True)[1]
+
+
+#print "analytic grad of k(s,xn)/sigSqr(xn) using C   =" +str(gradKoverSig)
+#print "numerical grad of  k(s,xn)/sigSqr(xn)  ="  +str(     (kOverSigPlusH - kOverSig)/h    )
+
+
+
+
+
+gph = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn+h, specs.r, specs.d, specs.reg)[0]
+numeric = ( gph- gFromC) /h
+
+
+
 # should equal (ok, almost equal)
 print( "g using c     = "  + str(gFromC) )
 print( "g using py    = "  + str(gFromPy))
 print( "grad using c  = "  + str(gradFromC) )
-print( "grad using py = "  + str(gradFromPy))
+print( "numeric gradient  ="  +str(numeric)  )
 
-
-
-
-
-
-
-
-gradKoverSig = _g.gradKoverSig(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
-print gradKoverSig

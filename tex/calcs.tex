@@ -53,7 +53,7 @@
 \newcommand{\exo}{\mathbb{E}_{(\xn,\omega)}}
 \newcommand{\var}{\text{Var}}
 \newcommand{\vgp}{\text{Var}_{\mathcal{GP}}}
-
+\newcommand{\bars}{ \ \ \ \ \ \ \ \ \ \ } 
 % shortcuts
 \newcommand{\ddxni}{\frac{\partial}{   \partial x_i^{(n)} }} % partial wrt ith coordinate of x^(n)
 \newcommand{\gxn}{\nabla_{x^{(n)}}} % gradient wrt x^(n)
@@ -351,7 +351,48 @@ And thus:
 %
 %
 %
-&\gxn \frac{ k(s, \xn) }{\signxn} - \gxn \frac {< \knm (s) ,  \Kinvnm \knm (\xn) >}{\signxn} \\\\
+&=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \gxn \frac {< \knm (s) ,  \Kinvnm \knm (\xn) >^2}{\signxn} \\\\
+%
+%
+%
+%
+%
+&=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \gxn \frac {< \knm (s)  \Kinvnm ,  \knm (\xn) >^2}{\signxn} \\\\
+%
+%
+%
+%
+ &=\gxn \frac{ [k(s, \xn)]^2 }{\signxn} - \frac { 2\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > }{\signxn}\\
+	      &\bars +\frac{ \gxn \signxn< \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\\\\
+%
+%
+%
+%
+&=\gxn \frac{ k^2(s, \xn) }{\signxn} \\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
+	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
+%
+%
+%
+%
+&=\frac{ 2\signxn \gxn k(s, \xn)}{(\signxn)^2} -\frac{k^2(s,\xn) \gxn \signxn  }{(\signxn)^2} \\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\
+	      &\bars +\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2}\gxn \signxn\\\\
+%
+%
+%
+%
+&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) > }{(\signxn)^2} -  \frac{k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
+	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
+%
+%
+%
+%
+&= \left [\frac{ < \knm (s)  \Kinvnm ,  \knm (\xn) >  - k^2(s,\xn) }{(\signxn)^2} \right]\gxn \signxn \\
+	      &\bars + \frac{ 2 \gxn k(s, \xn) }{\signxn}\\
+	      &\bars - \frac { 2}{\signxn}\gxn < \knm (s)  \Kinvnm ,  \knm (\xn) > \\\\	      
+%
 %
 %
 %
@@ -362,16 +403,16 @@ and we calculate them one by one. We obviously need the following calculation (w
 
 \begin{align}
  \begin{split}
-\gxn \frac{ k(s, \xn) }{\signxn} &= \gxn k(s, \xn)\signxn - k(s, \xn)\gxn\signxn \\\\
+\gxn \frac{ [k(s, \xn)]^2 }{\signxn} &= \gxn k(s, \xn)\signxn - k(s, \xn)\gxn\signxn \\\\
 %
 %
 %
 &= -\frac{k(\xn ,s)}{r^2} (\xn-s)\signxn -  \\
-	   & \ \ \ \ \ \ k(s, \xn) \frac{2}{r^2}\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+	   &\bars k(s, \xn) \frac{2}{r^2}\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
 %
 %
 &= -\frac{k(\xn ,s)}{r^2} [(\xn -s) \signxn \\ 
-     & \ \ \ \ \ \ \ \ \ + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+     & \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
  \end{split}
 \end{align}
 
@@ -380,7 +421,7 @@ And thus:
 \begin{align}
  \begin{split}
 \gxn \frac{ k(s, \xn) }{\signxn} & = -\frac{k(\xn ,s)}{r^2(\signxn)^2} [(\xn -s) \signxn \\ 
-		& \ \ \ \ \ \ \ \ \ + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+		& \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
  \end{split}
 \end{align}
 

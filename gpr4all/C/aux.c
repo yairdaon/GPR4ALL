@@ -113,7 +113,7 @@ double cov(double *x, double *y,  double r, double d, int N) {
 	int n;
     	for (n = 0; n < N; n++) {
      	   	dist = y[n] - x[n];
-		result += dist * dist;
+			result += dist * dist;
     	}
 
 	result = result /(2.0*r*r);

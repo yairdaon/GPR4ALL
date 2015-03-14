@@ -13,16 +13,16 @@ static char module_docstring[] =
 static char g_docstring[] =
     "calcualte g and its gradients ";
 
-static char gradKoverSig_docstring[] =
-    "calcualte gradient of covariance over variance";
+//static char gradKoverSig_docstring[] =
+ //   "calcualte gradient of covariance over variance";
 
 static PyObject *_g(PyObject *self, PyObject *args);
-static PyObject *_gradKoverSig(PyObject *self, PyObject *args);
+//static PyObject *_gradKoverSig(PyObject *self, PyObject *args);
 
 
 static PyMethodDef module_methods[] = {
 	    {"g"       , _g    , METH_VARARGS, g_docstring    },	  
-	    {"gradKoverSig"       , _gradKoverSig    , METH_VARARGS, gradKoverSig_docstring    },
+	   // {"gradKoverSig"       , _gradKoverSig    , METH_VARARGS, gradKoverSig_docstring    },
 	    {NULL, NULL, 0, NULL}
 };
 
@@ -33,20 +33,21 @@ PyMODINIT_FUNC init_g(void) {
     if (m == NULL)
         return;
 
-    /* Load `numpy` functionality. */
+    // Load `numpy` functionality. 
     import_array();
 }
 
-
+/*
 PyMODINIT_FUNC init_gradKoverSig(void) {
 
     PyObject *m = Py_InitModule3("_gradKoverSig", module_methods, module_docstring);
     if (m == NULL)
         return;
 
-    /* Load `numpy` functionality. */
+    // Load `numpy` functionality. 
     import_array();
 }
+*/
 
 
 
@@ -71,7 +72,7 @@ PyMODINIT_FUNC init_gradKoverSig(void) {
 
 
 
-
+/*
 
 static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
 {
@@ -80,14 +81,14 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
 	double r, d, reg;
 	PyObject *U_obj, *S_obj , *V_obj , *X_obj, *x_obj , *xn_obj;
 
-	/* Parse the input tuple */
+	// Parse the input tuple 
 	if (!PyArg_ParseTuple(args, "OOOOOOddd",
 			&U_obj, &S_obj, &V_obj,
 			&X_obj, &x_obj, &xn_obj,
 			&r , &d, &reg ))
 		return NULL;
 
-	/* Interpret the input objects as numpy arrays. */
+	// Interpret the input objects as numpy arrays.
     PyObject *U_array  = PyArray_FROM_OTF(U_obj , NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *S_array  = PyArray_FROM_OTF(S_obj , NPY_DOUBLE, NPY_IN_ARRAY);
     PyObject *V_array  = PyArray_FROM_OTF(V_obj , NPY_DOUBLE, NPY_IN_ARRAY);
@@ -96,7 +97,7 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
     PyObject *xn_array = PyArray_FROM_OTF(xn_obj, NPY_DOUBLE, NPY_IN_ARRAY);
 
 
-    /* If that didn't work, throw an exception. */
+    // If that didn't work, throw an exception. 
     if (U_array == NULL || S_array == NULL || V_array == NULL
     		|| X_array == NULL || x_array == NULL
     		 || xn_array == NULL) {
@@ -109,7 +110,7 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    /* What are the dimensions? */
+    // What are the dimensions? 
     int nvecs  = (int)PyArray_DIM(U_array , 1); //  == nvecs
     int Xlen   = (int)PyArray_DIM(X_array , 0); //  == nvecs 
     int veclen = (int)PyArray_DIM(X_array , 1); //  == veclen 
@@ -150,7 +151,7 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
 
 
 
-    /* Get pointers to the data as C-types. */
+    // Get pointers to the data as C-types.  
     double *U    = (double*)PyArray_DATA(U_array);
     double *S    = (double*)PyArray_DATA(S_array);
     double *V    = (double*)PyArray_DATA(V_array);
@@ -159,10 +160,10 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
     double *xn   = (double*)PyArray_DATA(xn_array);
 
 
-    /* Call the external C function to compute the covariance. */
+    // Call the external C function to compute the covariance. 
     double *grad = gradKOverSig(U, S, V, X, x, xn, r, d, reg, nvecs, veclen);
 
-    /* Clean up. */
+    // Clean up. /
     Py_DECREF(U_array);
     Py_DECREF(S_array);
     Py_DECREF(V_array);
@@ -171,7 +172,7 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
     Py_DECREF(xn_array);
 
 
-    /* Build the output tuple */
+    //* Build the output tuple  
 
     // create gradient of krig python object
     npy_intp dims[1] = {veclen}; // auxilliary array
@@ -181,40 +182,14 @@ static PyObject *_gradKoverSig(PyObject *self, PyObject *args)
 	free(grad); // definitely need this
 
 
-    /* Build the output tuple */
+    // Build the output tuple 
 	PyObject *ret = Py_BuildValue("O", pyGrad );
 	Py_DECREF(pyGrad);
 
 	return ret;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+*/
 
 
 
