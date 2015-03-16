@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 struct gStruct g(double *U, double *S, double *V,
 			 		double *X, double *x, double *xn,
 			 		double r, double d, double reg,
@@ -39,6 +40,11 @@ struct gStruct g(double *U, double *S, double *V,
 	struct krigStruct all = krigGrads( U, S, V, X, xn, y, dummyZeroGrad ,
 										0.0, r, d, reg, nvecs, veclen);
 		
+
+	//struct krigStruct all = locKrig( U, S, V, X, xn, y,
+		//	 					r, d, reg, nvecs, veclen);
+
+
 	// unpack
 	double krig        = all.krig;
 	double sigSqr      = all.sigSqr; 	

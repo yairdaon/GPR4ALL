@@ -17,13 +17,26 @@ push:
 
 
 g: gpr4all/_g.so
-		python2.7 gpr4all/Test_g.py
-gpr4ll/_g.so:	$(SO_FILES)
+	python2.7 gpr4all/Test_g.py
+
+gpr4ll/_g.so:	$(SO_FILES) $(C_FILES) 	
 	make build
 
 
-gpr4all/_g.so :	$(C_FILES) 		
+
+
+
+
+
+
+gpr4ll/_krigger.so:	_krigger.c krigger.c aux.c _aux.x  	
 	make build
+
+grads: gpr4all/_krigger.so
+	python2.7 gpr4all/tmp.py
+
+
+
 
 
 

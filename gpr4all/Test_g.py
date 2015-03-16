@@ -26,7 +26,7 @@ import rosenbrock as rose
 
 
 
-def gNaive(xn, s ,specs):
+def g_naive(xn, s ,specs):
 	'''
 	calculate g, as naively as possible
 	'''
@@ -40,35 +40,62 @@ def gNaive(xn, s ,specs):
 	
 	return       gValue*gValue/sigSqr
 	
-def gradNaive(xn, s, specs):
-	grad = -_aux.cov(xn,s, specs.r , specs.d)/(r*r)*(xn -s)
-	ks   = _aux.cov_vec(specs.Xarr, s, specs.r, specs.d)
-	kxn  = _aux.cov_vec(specs.Xarr, xn, specs.r, specs.d)
-	ksKinv  = _aux.solver(specs.U, specs.S, specs.V, ks, specs.reg)
+def grad_naive(xn, s, specs):
 
-	for i in range(len(specs.X)):
-		grad = grad + ksKinv[i] * kxn[i]*(xn - specs.X[i])/(specs.r*specs.r)
+	r = specs.r
+	d = specs.d
+
+
+	f  = lambda x: _aux.cov(s, x, r, d)
+	specs1 = cot.Container( f , r=r, d=d)
+	specs1.set_prior(lambda x: 0.0 , lambda x: 0.0)
+	for x in specs.X:
+		specs1.add_point(x)
+
+
+
+	covar = _aux.cov( xn ,s ,r, d)
+
+
+	print(specs1.X)
+	print
+	print(specs1.y)
+	print
+
+	krig, sigSqr , gradKrig, gradSig = specs1.kriging( xn , True , True )
 	
-	return grad
+	first = -2.0*covar/sigSqr
+	sec   = -(2.0/sigSqr) 
+	third = -((covar  - krig)**2 / (sigSqr)**2 )* gradSig
+	
+	return first * (xn - s) + sec * gradKrig + third * gradSig
+
+	
 
 r  = 1.72 
 d  = r
-dx = 1e-8
+dx = 0.001
+e1 = np.array([1.0 , 0.0])
+e2 = np.array([0.0 , 1.0])
 	
-#1D:
+
 # container setup
-specs = cot.Container( truth.big_poly_1D , r=r, d=d)
-specs.add_point( np.array([ 1.0 ]) )
-specs.add_point( np.array([-1.0 ]) )
-specs.set_matrices()  
+specs = cot.Container( truth.norm, r=r, d=d)
+specs.set_prior(lambda x: 0.0 , lambda x: 0.0)
+specs.add_point( np.array([ 1.0 , 1.0]) )
+specs.add_point( np.array([-1.0 ,-1.0]) )
+specs.set_matrices()
+
 
 # x is where derivative is calculated
-xn         =    np.array( [ 2.99 ])
-s          =    np.array( [ 3.47 ])
+xn         =    np.array( [ 2.99, 1.33 ])
+s          =    np.array( [ 3.47, 1.52 ])
+
+
 
 # the derivative calculated using calculus differentiation
-gFromPy  = gNaive(xn, s, specs)
-gradFromPy = gradNaive(xn,s,specs)
+#gFromPy  = g_naive(xn, s, specs)
+gradFromPy = grad_naive(xn,s,specs)
 
 # derivative calculated using finite differences
 gFromC , gradFromC  = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
@@ -87,8 +114,7 @@ print
 
 #gradKoverSig  = _g.gradKoverSig(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
 #kOverSig      = _aux.cov(s, xn, r, d)/specs.kriging(xn, grads = False, var = True)[1]
-
-h = np.array([0.00001])
+ 
 #kOverSigPlusH     = _aux.cov(s, xn+h, r, d)/specs.kriging(xn+h, grads = False, var = True)[1]
 
 
@@ -99,8 +125,9 @@ h = np.array([0.00001])
 
 
 
-gph = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn+h, specs.r, specs.d, specs.reg)[0]
-numeric = ( gph- gFromC) /h
+gph1 , _ = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn+e1*dx, specs.r, specs.d, specs.reg)
+gph2 , _ = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn+e2*dx, specs.r, specs.d, specs.reg)
+numeric = np.array([ gph1- gFromC , gph2- gFromC ])/dx
 
 
 
@@ -108,5 +135,6 @@ numeric = ( gph- gFromC) /h
 print( "g using c     = "  + str(gFromC) )
 print( "g using py    = "  + str(gFromPy))
 print( "grad using c  = "  + str(gradFromC) )
+print( "grad using py = "  + str(gradFromPy) )
 print( "numeric gradient  ="  +str(numeric)  )
 
