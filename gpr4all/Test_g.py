@@ -94,8 +94,8 @@ s          =    np.array( [ 3.47, 1.52 ])
 
 
 # the derivative calculated using calculus differentiation
-#gFromPy  = g_naive(xn, s, specs)
-gradFromPy = grad_naive(xn,s,specs)
+gFromPy  = g_naive(xn, s, specs)
+#gradFromPy = grad_naive(xn,s,specs)
 
 # derivative calculated using finite differences
 gFromC , gradFromC  = _g.g(specs.U,  specs.S, specs.V, specs.Xarr, s, xn, specs.r, specs.d, specs.reg)
@@ -135,6 +135,6 @@ numeric = np.array([ gph1- gFromC , gph2- gFromC ])/dx
 print( "g using c     = "  + str(gFromC) )
 print( "g using py    = "  + str(gFromPy))
 print( "grad using c  = "  + str(gradFromC) )
-print( "grad using py = "  + str(gradFromPy) )
+#print( "grad using py = "  + str(gradFromPy) )
 print( "numeric gradient  ="  +str(numeric)  )
 

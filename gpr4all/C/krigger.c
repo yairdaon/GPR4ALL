@@ -20,7 +20,7 @@ struct krigStruct krigGrads(double *U, double *S, double *V,
 	 * X	 is an nvecs    by   veclen    matrix
 	 * x	 is an veclen   by   1         vector
 	 * y	 is an nvecs    by   1         vector
-	 * grad  is an veclen   by   1         vector
+	 * grad  is an veclen   by   1         vector 
 	 *
 	 */
 
