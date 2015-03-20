@@ -42,7 +42,7 @@ struct gStruct g(double *U, double *S, double *V,
 		
 
 	//struct krigStruct all = locKrig( U, S, V, X, xn, y,
-		//	 					r, d, reg, nvecs, veclen);
+	//				 					r, d, reg, nvecs, veclen);
 
 
 	// unpack

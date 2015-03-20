@@ -71,7 +71,7 @@ class Container:
         as above, a dictionary of key word argument for the true log-likelihood
     '''
         
-    def __init__(self,trueLL, r=1.3, d=1.0, args =[] , kwargs = {} ):
+    def __init__(self,trueLL, r=1.0, d=1.0, args =[] , kwargs = {} ):
         '''
         we set many default parameters here. you may change them if you 
         are sure you understand what they do. change them using their 
@@ -172,14 +172,15 @@ class Container:
         # create arrays
         self.y = ravel(array( self.Fmp ))
         self.Xarr = np.asarray(self.X)
-        # we need to recalculate the matrices, so the matrices aren't ready
+       
+		# we need to recalculate the matrices, so the matrices aren't ready
         self.matricesReady = False    
    
     
     def add_point(self , x):
         '''
         add the point x with its true LL. usually used when you have
-        data from previous runs and you wwant to start your kriging 
+        data from previous runs and you want to start your kriging 
         using that data
         '''
         
@@ -240,7 +241,8 @@ class Container:
         
         cm = _aux.cov_mat(self.Xarr, self.r, self.d)    # cm  = covariance matrix
         self.U, self.S, self.V = np.linalg.svd(cm, full_matrices = True, compute_uv = True)
-
+        self.cm  = cm	
+		
         # tell everybody the matrices are ready
         self.matricesReady = True
 

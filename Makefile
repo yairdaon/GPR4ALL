@@ -11,7 +11,7 @@ build: $(C_FILES)
 clean:
 	rm -rvf gpr4all/*.pyc gpr4all/C/*.pyc graphics Data build gpr4all/C/build 
 	rm -rvf gpr4all/C/*.h~ gpr4all/C/*.c~ *~ *.so*  tests/*.pyc gpr4all/*.so
-	
+	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup	
 push:
 	git push https://github.com/yairdaon/GPR4ALL
 
@@ -46,4 +46,5 @@ pdf: tex/calcs.pdf
 
 tex/calcs.pdf: tex/calcs.tex
 	pdflatex tex/calcs.tex
-	rm -vf tex/*.aux tex/*.log tex/*.out
+	rm -vf tex/*.aux tex/*.log tex/*.out calcs.log calcs.aux
+	mv calcs.pdf tex

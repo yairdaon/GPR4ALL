@@ -4,19 +4,19 @@
 #include <stdio.h>
 
 static char module_docstring[] =
-    "This module provides an interface for calculating covariance using C.";
+    "This module provides an interface for calculating covariances using C.";
 
 static char cov_docstring[] =
-    "Calculate the covariance between two vectors.";
+    "Calculate the covariance between two vectors. Input: x , y , r ,d ";
 
 static char cov_vec_docstring[] =
-	"Calculate the covariances between a vector and a list of vectors.";
+	"Calculate the covariances between a vector and a list of vectors. Input: X ,x , r ,d";
 
 static char cov_mat_docstring[] =
-		"get a covariance matrix.";
+		"get a covariance matrix. Input: X, r ,d";
 
 static char solver_docstring[] =
-				"solve using tychonoff regularization.";
+		"solve using tychonoff regularization. Input: U, S, V, b ,reg";
 
 static PyObject *_aux_cov(PyObject *self, PyObject *args);
 
