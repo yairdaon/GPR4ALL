@@ -16,11 +16,11 @@ push:
 	git push https://github.com/yairdaon/GPR4ALL
 
 
-g: gpr4all/_g.so
-	python2.7 gpr4all/Test_g.py
-
-gpr4ll/_g.so:	$(SO_FILES) $(C_FILES) 	
+gpr4ll/_g.so: $(C_FILES) 	
 	make build
+
+g: $(SO_FILES)
+	python2.7 gpr4all/Test_g.py &
 
 
 

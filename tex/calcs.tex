@@ -237,17 +237,17 @@ where we denote $\vns := \sum_{i=1}^n k(s,\xii)\Kinvn_{in}$. By our assumptions,
 This means that 
 
 $$
-\vgp[e^{\vns f_n(\omega)}] = (e^{\vnssqr\signxn} - 1) \exp( 2\vns\munxn + \vnssqr\signxn )
+\vgp[e^{\vns f_n(\omega)}] = (e^{\vnssqr}\signxn - 1) \exp( 2\vns\munxn + \vnssqr\signxn )
 $$
 
 We plug this in the above series of equalities and define $f_n :=\munxn, \sigma^2: = \signxn$:
 
 \begin{align}
  \begin{split}
-&= \int  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,x_i)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \cdot 
+&= \int  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \cdot 
 	      (e^{\vnssqr\sigma^2 } - 1)\exp( 2\vns f_n + \vnssqr \sigma^2 )  ds,\\
 %
-&= \int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,x_i)K_{ij}^{(-n)}f_j + 2\vns f_n + 2f_\pr(s)) 
+&= \int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2\vns f_n + 2f_\pr(s)) 
 	(e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds,\\
 %%
 &= \int \exp(2\kn(s)\Kinvn f + 2f_\pr(s)) \cdot  (e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds\\\\
@@ -280,7 +280,7 @@ that in the matrix block inversion, $\bar{c} =\frac{1}{\sqnm (\xn)}$
 % 
 %
 %
-  &= \frac{[k(s, \xn) \bar{c} + < k^{(n-1)}(s) ,  -\bar{c}\Kinvnm k^{(n-1)}(\xn) >]^2}{\sqnm(\xn)}  \\\\
+  & [k(s, \xn) \bar{c} + < k^{(n-1)}(s) ,  -\bar{c}\Kinvnm k^{(n-1)}(\xn) >]^2\sqnm(\xn)  \\\\
 % 
 %
 %
@@ -293,74 +293,33 @@ We need to differentiate this wrt $\xn$.
 
 
 \section{Derivatives}
-
-Start with easy sneezy.
+In what follows, we temporarily denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $, suppressing 
+the dependence on $s$. 
 \begin{align}
  \begin{split}
-  \gxn k(\xn,s) &= \gxn c\exp(-\frac{||\xn - s||^2}{2r^2} )\\
-%
-&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
-%
-&= -\frac{k(\xn,s)}{2r^2} \gxn||\xn - s||^2 \\
-%
-&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\\
- \end{split}
-\end{align}
-
-In the following, gradient is taken with respect to $s$.
-
-\begin{align}
- \begin{split}
-  \nabla \sqn (s) &= \nabla [ c - \kn(s) \Kinvn \kn(s)]\\\\
-%
-%
-%
-&= -2 \kn(s) \Kinvn \nabla\kn(s)\\\\
-%
-%
-%
-&= -2 \sum_{i,j=1}^{n} \kn(s)_j \Kinvn_{ji} \nabla k (s, x_i)\\\\
-%
-%
-%
-&= 2 \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} \frac{k(\xii ,s)}{r^2} (s-\xii)\\\\
-%
-%
-%
-&= \frac{2}{r^2} \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} k(\xii ,s) (s-\xii)\\\\
- \end{split}
-\end{align}
-
-Consequently:
-
-\begin{align}
- \begin{split}
-  \gxn \signxn &= \frac{2}{r^2} \sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
- \end{split}
-\end{align}
-
-And thus:
-
-\begin{align}
- \begin{split}
-  \gxn \left[ v_n^2(s)\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
-%
-%
-%
-&=\frac{ 2\gxn[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]\signxn}{(\signxn)^2} \\
-	    &\bars- \frac{\gxn \signxn [k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2} \\\\
-%
-%
-%
-&=\frac{ 2}{\signxn} \gxn[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]\\
-	    &\bars- \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2}\gxn \signxn \\\\
+  \gxn \left[ \vnssqr\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
 %
 %
 %
 %
-&=\frac{ 2}{\signxn} \gxn k(s , \xn) \\
-	    &\bars - \frac{ 2}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
-	    &\bars - \frac{[k(s, \xn) - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{(\signxn)^2}\gxn \signxn \\\\
+&= \gxn \frac{ u^2 (\xn) }{\signxn}\\\\
+%
+%
+%
+&=\frac{ 2u(\xn)\gxn u(\xn) \signxn}{(\signxn)^2} \\
+	    &\bars- \frac{\gxn \signxn u^2(\xn)}{(\signxn)^2} \\\\
+%
+%
+%
+&=\frac{ 2u(\xn)}{\signxn} \gxn u(\xn)\\
+	    &\bars- \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+%
+%
+%
+%
+&=\frac{ 2u(\xn)}{\signxn} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2u(\xn)}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
+	    &\bars - \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
 %
 %
 %
@@ -371,43 +330,17 @@ And thus:
  \end{split}
 \end{align}
 
-and we calculate them one by one. We obviously need the following calculation (we ignore the $(\signxn)^2$ term on the denomiantor, for convenience):
 
-\begin{align}
- \begin{split}
-\gxn \frac{ [k(s, \xn)]^2 }{\signxn} &= \gxn k(s, \xn)\signxn - k(s, \xn)\gxn\signxn \\\\
-%
-%
-%
-&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\signxn -  \\
-	   &\bars k(s, \xn) \frac{2}{r^2}\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
-%
-%
-&= -\frac{k(\xn ,s)}{r^2} [(\xn -s) \signxn \\ 
-     & \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
- \end{split}
-\end{align}
-
-And thus:
-
-\begin{align}
- \begin{split}
-\gxn \frac{ k(s, \xn) }{\signxn} & = -\frac{k(\xn ,s)}{r^2(\signxn)^2} [(\xn -s) \signxn \\ 
-		& \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
- \end{split}
-\end{align}
-
-
-In what follows, we hold $n$ fixed and denote $g(s) : = v_n^2(s)\sqnm(\xn)$ and $\nabla g(s)$ its gradient wrt $\xn$. We wish to find 
+In what follows, we hold $n$ fixed and denote $g(s) : = \vnssqr \sqnm(\xn)$ and $\nabla g(s)$ its gradient wrt $\xn$. We wish to find 
 $\argmin_{\xn}$ of the average variance and so we need to find derivatives.
 
 \begin{align}
  \begin{split}
- & \gxn \int \exp(2\mu^{(n-1)}(s)) (e^{2v^2_n(s)\sigma^2 } - e^{v^2_n(s)\sigma^2 }) ds \\
+ & \gxn \int \exp(2\mu^{(n-1)}(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
 %
 %
 % 
-&=  \int \exp(2\mu^{(n-1)}(s)) \gxn (e^{2v^2_n(s)\sigma^2 } - e^{v^2_n(s)\sigma^2 }) ds \\
+&=  \int \exp(2\mu^{(n-1)}(s)) \gxn (e^{2\vnssqr\sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
 %
 %
 %
@@ -441,8 +374,237 @@ where $Z_k$ are drawn using the log likelihood $2\mu^{(n-1)}(\cdot)$ (note the $
 on $x^{(n)}$ and so this normalization is only a constant factor.
 
 
+\section{Xtras}
+Start with easy sneezy.
+\begin{align}
+ \begin{split}
+  \gxn k(\xn,s) &= \gxn c\exp(-\frac{||\xn - s||^2}{2r^2} )\\
+%
+&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
+%
+&= -\frac{k(\xn,s)}{2r^2} \gxn||\xn - s||^2 \\
+%
+&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\\
+ \end{split}
+\end{align}
+
+In the following, gradient is taken with respect to $s$.
+
+\begin{align}
+ \begin{split}
+  \nabla \sqn (s) &= \nabla [ c - \kn(s) \Kinvn \kn(s)]\\\\
+%
+%
+%
+&= -2 \kn(s) \Kinvn \nabla\kn(s)\\\\
+%
+%
+%
+&= -2 \sum_{i,j=1}^{n} \kn(s)_j \Kinvn_{ji} \nabla k (s, \xii )\\\\
+%
+%
+%
+&= 2 \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} \frac{k(\xii ,s)}{r^2} (s-\xii)\\\\
+%
+%
+%
+&= \frac{2}{r^2} \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} k(\xii ,s) (s-\xii)\\\\
+ \end{split}
+\end{align}
+
+Consequently:
+
+\begin{align}
+ \begin{split}
+  \gxn \signxn &= \frac{2}{r^2} \sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+ \end{split}
+\end{align}
+
+
 \end{document}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+and we calculate them one by one. We obviously need the following calculation (we ignore the $(\signxn)^2$ term on the denomiantor, for convenience):
+
+\begin{align}
+ \begin{split}
+\gxn \frac{ [k(s, \xn)]^2 }{\signxn} &= \gxn k(s, \xn)\signxn - k(s, \xn)\gxn\signxn \\\\
+%
+%
+%
+&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\signxn -  \\
+	   &\bars k(s, \xn) \frac{2}{r^2}\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+%
+%
+&= -\frac{k(\xn ,s)}{r^2} [(\xn -s) \signxn \\ 
+     & \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+ \end{split}
+\end{align}
+
+
+
+
+
+
+
+
+
+
+
+\begin{align}
+ \begin{split}
+\gxn \frac{ k(s, \xn) }{\signxn} & = -\frac{k(\xn ,s)}{r^2(\signxn)^2} [(\xn -s) \signxn \\ 
+		& \bars + 2\sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)]
+ \end{split}
+\end{align}
 
 
 
