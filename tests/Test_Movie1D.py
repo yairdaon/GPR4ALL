@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
         
         #     Initializations of the container object
         specs = cot.Container(truth.big_poly_1D )
-#         specs.set_prior( lambda x: -np.linalg.norm(x)**6)
+        #specs.set_prior( lambda x: -np.linalg.norm(x)**6)
 
         M = 2.5
     

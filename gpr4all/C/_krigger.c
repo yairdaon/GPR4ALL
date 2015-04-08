@@ -350,22 +350,25 @@ static PyObject *_krigger_krig(PyObject *self, PyObject *args)
 
 
     if ( nvecs!=ylen ) {
+      		printf("Dimension mismatch:  len(y)== %d != %d == U.shape[1].", ylen, nvecs );
+
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimension mismatch:  len(y) != U.shape[1].");
+				"Dimension mismatch:  len(y) != U.shape[1]." );
+
     		return NULL;
         }
 
 
     if ( xlen!=veclen ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimension mismatch:  Xarr.shape[1] != len(x).");
+				"Dimension mismatch:  Xarr.shape[1] != len(x).");
     		return NULL;
         }
 
 
     if ( slen!=nvecs ) {
         	PyErr_SetString(PyExc_RuntimeError,
-        							"Dimension mismatch:  len(s) != U.shape[1].");
+				"Dimension mismatch:  len(s) != U.shape[1].");
     		return NULL;
         }
 

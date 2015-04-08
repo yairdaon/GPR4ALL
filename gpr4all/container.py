@@ -156,7 +156,17 @@ class Container:
             grad  = self.gradPrior(s)
             return _krigger.krig_grads( self.U, self.S, self.V, self.Xarr,
                                          s, self.y, grad, prior, self.r,
-                                          self.d, self.reg)                                            
+                                          self.d, self.reg)  
+
+
+    def ssaLL(self, s):
+        # make sure the matrices used in the kriging computation are ready    
+        if not self.matricesReady:
+                self.set_matrices()
+        return 2.0* _krigger.krig( self.U, self.S, self.V,
+                                   self.Xarr, ravel(s), self.y, 
+                                   self.prior(s), self.r , self.d, 
+                                   self.reg)
             
     def add_pair(self,x,f):
         ''' 

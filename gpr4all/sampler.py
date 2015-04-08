@@ -6,16 +6,15 @@ Feel free to write to me about my code!
 '''
 
 import scipy.optimize
+import numpy as np
 
 import emcee as mc
 
-import numpy as np
 import targets
-
 import container as cot
 import truth as truth
-
 import kl as kl
+import _g
 
 
 class Sampler(object):
@@ -91,7 +90,7 @@ class Sampler(object):
         self.state = np.random.get_state()
         
         # create the emcee sampler, let it burn in and erase burn in
-        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging) #, kwargs={'grads': False , 'var': False} )
+        self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging) 
         self.didBurnIn = False
         
         # tell samplers that they do not need to propagate the walkers
@@ -105,28 +104,56 @@ class Sampler(object):
         
         self.variances = []
         
-        self.choose_point = self.choose_point_heuristic
+        self.choose_point = self.min_var
         
-    def choose_point_ratios(self):
+
+
+
+
+
+    def var_sample(self, nsteps):
+        '''
+        get the sample for the SSA approximation of the
+        average variance. The only difference is that 
+        we use twice the LL herer
+        '''
+
+        # the initial set of positions
+        pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
+        pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
+        pos = pos.reshape((self.nwalkers, self.ndim)) # reshape
+        
+        sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.ssaLL) 
+        pos, _ , self.state = sam.run_mcmc( pos, self.burn,self.state )
+        sam.reset()
+        pos, _ , self.state = sam.run_mcmc( pos, nsteps,self.state )
+
+        return sam.flatchain
+    
+
+
+        
+    def min_var(self):
         '''
         use some heuristic, made up, ad hoc 
         criterion to choose next point
         '''           
-        self.maxiter = 20
-        n = 3500
-        self.burnIn()
-        self.run_mcmc( n )
+        sample = self.var_sample(500)
+        target = _g.avg_var
+        specs  = self.specs
+	soArgs   = ( specs.U, specs.S, specs.V,
+                   specs.Xarr, sample,
+                   specs.r , specs.d, specs.reg )
             
-        target = targets.goodmans_criterion   
         bestValue = np.inf
 
         for _ in range(self.noptimizers):
             
             # sample a starting point
-            startPoint = self.sample_one()
+            startPoint = 20.0*self.sample_one()
  
-            result = scipy.optimize.minimize(target, startPoint, args=(self.specs, self.variances), 
-                                                method='Nelder-Mead', options= {'maxiter' : self.maxiter} )
+            result = scipy.optimize.minimize(target, startPoint, args=soArgs, method='BFGS',
+                                             jac = True, options= {'maxiter' : self.maxiter} )
             if result.fun < bestValue:
                 bestValue = result.fun
                 bestPoint = result.x
@@ -135,73 +162,6 @@ class Sampler(object):
         bestPoint = bestPoint.reshape(self.ndim,)        
         return bestPoint
                     
-    
-    def choose_point_heuristic(self):
-        '''
-        use some heuristic, made up, ad hoc 
-        criterion to choose next point
-        '''           
-
-        bestValue = np.inf
-        
-        for _ in range(self.noptimizers):
-            
-            # sample a starting point
-            startPoint = self.sample_one()
- 
-            result = scipy.optimize.minimize(self.target, startPoint, args=(self.specs,), 
-                                                method='BFGS', jac=True , options= {'maxiter' : self.maxiter} )
-            if result.fun < bestValue:
-                bestValue = result.fun
-                bestPoint = result.x
-            
-       
-        bestPoint = bestPoint.reshape(self.ndim,)        
-        return bestPoint
-
-          
-    def choose_point_expected_KL(self):
-        '''
-        use some heuristic, made up, ad hoc 
-        criterion to choose next point
-        '''           
-
-        # this is the container of (n+1) points
-        specsTmp = cot.Container( truth.dummy, r=self.specs.r, d=self.specs.d, args=self.specs.args, 
-                                    kwargs=self.specs.kwargs)
-        specsTmp.set_prior(self.specs.prior, self.specs.gradPrior)
-         
-        # add n+1 (!!!) points. 
-        for (x,f) in zip(self.specs.X, self.specs.F):
-            specsTmp.add_pair(x, f)
-        specsTmp.add_pair(0.0, 0.0)  # this junk will be ignnored  
- 
-         
-        #  a sampler to sample from the n+1 points kriged log likelihood    
-        samplerTmp = Sampler(specsTmp, target = truth.dummy,
-                        nwalkers = self.nwalkers, 
-                        noptimizers = self.noptimizers,  burn = self.burn)
-
-        target =  kl.expected_KL
-
-        bestValue = np.inf
-        
-        for _ in range(self.noptimizers):
-            
-            # sample a starting point
-            startPoint = self.sample_one()
-
-            result = scipy.optimize.minimize(target, startPoint, args=(self.specs, specsTmp, samplerTmp), 
-                                                 method='Nelder-Mead' , options= {'maxiter' : self.maxiter} )
-                
-            if result.fun < bestValue:
-                bestValue = result.fun
-                bestPoint = result.x
-            
-       
-        bestPoint = bestPoint.reshape(self.ndim,)        
-        return bestPoint    
-
 
     def learn(self):
         '''
@@ -225,7 +185,7 @@ class Sampler(object):
         self.didBurnIn = False
 
         # update our burnin time to something more reasonable
-#         self.burn = 2*self.decorTime
+        #self.burn = 2*self.decorTime
     
            
     def run_mcmc(self, nsteps):

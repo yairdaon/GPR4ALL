@@ -13,6 +13,7 @@ import numpy as np
 pi2 = math.pi/2
 xp100 = math.exp(100)
 
+
 def goodmans_criterion(s , specs, variances):
     '''
     use goodman's criterion

@@ -1,15 +1,14 @@
-struct gStruct{
-   double   gValue;
+struct valGrad{
+   double   value;
    double * grad;
 } ;
 
-struct gStruct g(double *U, double *S, double *V,
+struct valGrad avgVar(double *U, double *S, double *V,
+		      double *X, double * sample, double *xn,
+		      double r, double d, double reg,
+		      int nvecs, int veclen, int nsteps);
+
+struct valGrad g(double *U, double *S, double *V,
 			 double *X, double *x, double *xn,
 			 double r, double d, double reg,
 			 int nvecs, int veclen);
-
-
-double * gradKOverSig( double *U, double *S, double *V,
-			 		double *X, double *x, double *xn,
-			 		double r, double d, double reg,
-				 	int nvecs, int veclen);
