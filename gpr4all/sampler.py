@@ -108,26 +108,26 @@ class Sampler(object):
         
 
 
-
-
-
     def var_sample(self, nsteps):
         '''
         get the sample for the SSA approximation of the
         average variance. The only difference is that 
-        we use twice the LL herer
+        we use twice the LL here
         '''
 
+        print("Starting SSA sample")
         # the initial set of positions
         pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
         pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
         pos = pos.reshape((self.nwalkers, self.ndim)) # reshape
         
+        # sample using the SSA LL which is twice the original LL
         sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.ssaLL) 
         pos, _ , self.state = sam.run_mcmc( pos, self.burn,self.state )
         sam.reset()
         pos, _ , self.state = sam.run_mcmc( pos, nsteps,self.state )
 
+        print("Finished SSA sampler")
         return sam.flatchain
     
 
@@ -135,7 +135,7 @@ class Sampler(object):
         
     def min_var(self):
         '''
-        use some heuristic, made up, ad hoc 
+        use minimum variance 
         criterion to choose next point
         '''           
         sample = self.var_sample(500)
@@ -150,7 +150,7 @@ class Sampler(object):
         for _ in range(self.noptimizers):
             
             # sample a starting point
-            startPoint = 20.0*self.sample_one()
+            startPoint = self.sample_one()
  
             result = scipy.optimize.minimize(target, startPoint, args=soArgs, method='BFGS',
                                              jac = True, options= {'maxiter' : self.maxiter} )

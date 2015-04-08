@@ -7,10 +7,6 @@
 
 
 
-
-
-
-
 struct valGrad avgVar(double *U, double *S, double *V,
 		      double *X, double * sample, double *xn,
 		      double r, double d, double reg,
@@ -82,30 +78,6 @@ struct valGrad avgVar(double *U, double *S, double *V,
 
 
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 struct valGrad g(double *U, double *S, double *V,

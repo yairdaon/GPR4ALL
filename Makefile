@@ -1,8 +1,10 @@
-C_FILES  = gpr4all/C/*.c gpr4all/C/*.h
-SO_FILES = gpr4all/*.so
+C_FILES  = gpr4all/C/g.c gpr4all/C/_g.c gpr4all/C/g.h gpr4all/C/aux.c gpr4all/C/_aux.c gpr4all/C/_krigger.c  gpr4all/C/krigger.c
+SO_FILES = gpr4all/_g.so gpr4all/_aux.so gpr4all/_krigger.so
 
+test: 
+	python2.7 gpr4all/Test_ssa.py
 
-build: $(SO_FILES) 
+build:
 	python2.7 gpr4all/C/setup.py build_ext --inplace
 	rm -rvf build
 	mv *.so	gpr4all
@@ -12,33 +14,13 @@ clean:
 	rm -rvf gpr4all/*.pyc gpr4all/C/*.pyc graphics Data build gpr4all/C/build 
 	rm -rvf gpr4all/C/*.h~ gpr4all/C/*.c~ *~ *.so*  tests/*.pyc gpr4all/*.so
 	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup	
+
+# push git repository
 push:
 	git push https://github.com/yairdaon/GPR4ALL
 
-
-gpr4ll/_g.so: $(C_FILES) 	
+gpr4all/%.so: $(C_FILES)
 	make build
-
-g: $(SO_FILES)
-	python2.7 gpr4all/Test_g.py &
-
-
-
-
-
-
-
-
-gpr4ll/_krigger.so:	_krigger.c krigger.c aux.c _aux.x  	
-	make build
-
-grads: gpr4all/_krigger.so
-	python2.7 gpr4all/tmp.py
-
-
-
-
-
 
 # making a pdf 
 pdf: tex/calcs.pdf

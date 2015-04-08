@@ -5,10 +5,10 @@ Created on May 19, 2014
 Feel free to write to me about my code!
 '''
 import numpy as np
-
 from numpy import array as array
 from numpy import ravel as ravel
 from numpy import asarray as asarray
+import math
 
 import _aux 
 import _krigger
@@ -163,10 +163,12 @@ class Container:
         # make sure the matrices used in the kriging computation are ready    
         if not self.matricesReady:
                 self.set_matrices()
-        return 2.0* _krigger.krig( self.U, self.S, self.V,
+        value= 2.0* _krigger.krig( self.U, self.S, self.V,
                                    self.Xarr, ravel(s), self.y, 
                                    self.prior(s), self.r , self.d, 
                                    self.reg)
+        assert not math.isnan(value) ,"LL returned NaN for " + str(s)
+        return value
             
     def add_pair(self,x,f):
         ''' 
