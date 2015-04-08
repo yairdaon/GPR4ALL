@@ -2,7 +2,7 @@ C_FILES  = gpr4all/C/*.c gpr4all/C/*.h
 SO_FILES = gpr4all/*.so
 
 
-build: $(C_FILES) 
+build: $(SO_FILES) 
 	python2.7 gpr4all/C/setup.py build_ext --inplace
 	rm -rvf build
 	mv *.so	gpr4all

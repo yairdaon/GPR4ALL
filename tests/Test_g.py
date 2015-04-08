@@ -7,6 +7,8 @@ Feel free to write to me about my code!
 
 
 import numpy as np
+import math
+import matplotlib.pyplot as plt	
 
 #import gpr4all.container as cot
 #import gpr4all.sampler as smp
@@ -24,8 +26,6 @@ import _aux as _aux
 import _g as _g
 import rosenbrock as rose
 
-import math
-import matplotlib.pyplot as plt	
 
 def g_py(xn, s ,specs):
 	'''
@@ -70,13 +70,3 @@ print( "g using c     = "  + str(gC)       )
 print( "g using py    = "  + str(gPy)      )
 print( "grad using c  = "  + str(gradC)    )
 print( "numeric grad  ="   + str(numeric)  )
-
-
-sampler = smp.Sampler( specs )
-print(specs.X)
-
-sampler.learn()
-print(specs.X)
-
-sampler.learn()
-print(specs.X)
