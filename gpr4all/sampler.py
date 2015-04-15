@@ -15,6 +15,7 @@ import container as cot
 import truth as truth
 import kl as kl
 import _g
+i = np.array( [0.0] )
 
 
 class Sampler(object):
@@ -115,7 +116,7 @@ class Sampler(object):
         we use twice the LL here
         '''
 
-        print("Starting SSA sample")
+        print("Starting SAA sample")
         # the initial set of positions
         pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
         pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
@@ -127,7 +128,7 @@ class Sampler(object):
         sam.reset()
         pos, _ , self.state = sam.run_mcmc( pos, nsteps,self.state )
 
-        print("Finished SSA sampler")
+        print("Finished SAA sampler")
         return sam.flatchain
     
 
@@ -138,7 +139,7 @@ class Sampler(object):
         use minimum variance 
         criterion to choose next point
         '''           
-        sample = self.var_sample(500)
+        sample = self.var_sample(2000)
         target = _g.avg_var
         specs  = self.specs
 	soArgs   = ( specs.U, specs.S, specs.V,
@@ -151,7 +152,6 @@ class Sampler(object):
             
             # sample a starting point
             startPoint = self.sample_one()
- 
             result = scipy.optimize.minimize(target, startPoint, args=soArgs, method='BFGS',
                                              jac = True, options= {'maxiter' : self.maxiter} )
             if result.fun < bestValue:
@@ -159,7 +159,8 @@ class Sampler(object):
                 bestPoint = result.x
             
        
-        bestPoint = bestPoint.reshape(self.ndim,)        
+        bestPoint = bestPoint.reshape(self.ndim,)
+        print bestPoint
         return bestPoint
                     
 
