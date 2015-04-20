@@ -46,38 +46,66 @@
 \newcommand{\ee}{\mathbb{E}}
 \newcommand{\rr}{\mathbb{R}}
 \newcommand{\logl}{\mathbf{l}}
+
 \newcommand{\xx}{\mathbf{x}}
 \newcommand{\cov}{\text{cov}}
 \newcommand{\dd}{\mathcal{D}}
+
+
+% GP notation
 \newcommand{\egp}{\mathbb{E}_{\mathcal{GP}}}
+\newcommand{\en}{\mathbb{E}_{f(\xn)}}
 \newcommand{\exo}{\mathbb{E}_{(\xn,\omega)}}
 \newcommand{\var}{\text{Var}}
 \newcommand{\vgp}{\text{Var}_{\mathcal{GP}}}
+
 \newcommand{\bars}{ \ \ \ \ \ \ \ \ \ \ } 
-% shortcuts
 \newcommand{\ddxni}{\frac{\partial}{   \partial x_i^{(n)} }} % partial wrt ith coordinate of x^(n)
 \newcommand{\gxn}{\nabla_{x^{(n)}}} % gradient wrt x^(n)
-\newcommand{\xn}{x^{(n)}} 
-\newcommand{\xii}{x^{(i)}}
+
+
+\newcommand{\xn}{x^{(n)}} % nth x
 \newcommand{\xj}{x^{(j)}}
+\newcommand{\xii}{x^{(i)}}
+\newcommand{\Xn}{X^{(n)}}
+
+
+\newcommand{\mn}{m^{(n)}} 
+\newcommand{\mnm}{m^{(n-1)}}
+\newcommand{\mnxn}{m^{(n-1)}(\xn)}
+\newcommand{\mii}{m^{(i)}}
+\newcommand{\mj}{m^{(j)}}
+\newcommand{\Mn}{M^{(n)}}
+
+
+\newcommand{\fn}{f^{(n)}} % nth f
+\newcommand{\fnm}{f^{(n-1)}}
+\newcommand{\fmm}{\bar{f}}
+\newcommand{\fii}{f^{(i)}}
+\newcommand{\fj}{f^{(j)}}
+\newcommand{\Fn}{F^{(n)}}
+\newcommand{\Fnm}{F^{(n-1)}}
+
+
 \newcommand{\kn}{k^{(n)}}
 \newcommand{\knm}{k^{(n-1)}}
+
+
 \newcommand{\Kinvn}{K^{(-n)}} % K^(-n)
 \newcommand{\Kinvnm}{K^{(-[n-1])}} 
+\newcommand{\Kinv}{K^{-1}} % K inverse
+
+
 \newcommand{\der}[2]{\frac{\partial #1}{\partial #2}}
-\newcommand{\pr}{\text{pr}} % prior
-\newcommand{\post}{\text{post}} % posterior
-\newcommand{\norm}[1]{||#1||} %norm
-\newcommand{\kinv}{K^{-1}} % K inverse
+
 \newcommand{\sqn}{\sigma ^{2 , (n)}     }
 \newcommand{\sqnm}{\sigma ^{2 , (n-1)}     }
 \newcommand{\signxn}{\sigma^{2, (n-1)} (\xn)}
-\newcommand{\munxn}{\mu ^{(n-1)}(\xn)}
-\newcommand{\vns}{v^{(n)}(s)}
-\newcommand{\vnssqr}{v^{2,(n)}(s)}
-%\newcommand{\np}{^{(n)}} % mu^(n)
-%\newcommand{\n1}{^{(n-1)}} % mu^(n-1)
 
+\newcommand{\vns}{v(s ; \xn)}
+\newcommand{\vnssqr}{v^2(s;\xn)}
+
+\newcommand{\norm}[1]{||#1||} %norm
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
@@ -86,23 +114,31 @@
 \begin{document}
 
 \section{Notation}
+Some notation I will use:
 \begin{itemize}
- \item $\rr^d$ the linear space over which we wish to integrate.
- \item Superscript in parenthesis is an index: $\xj \in \rr^d$ is the $j$th vector.
- \item Subscript is coordinate: $\xj_i$ is the $i$th coordinate of $\xj \in \rr^d$.
- \item $k: \rr ^d \times \rr ^d \to \rr$ the covariance function (kernel).
+ \item $\rr^d$ is where our probability lives - $p :\rr^d \to \rr_{+}$.
  \item $(\Omega, \mathcal{F}, \mathbb{P})$ the probability space of the gaussian process. Changes as we condition.
- \item $f : \rr^d \times \Omega \to \rr$ a gaussian process.
+ \item $f : \rr^d \times \Omega \to \rr$ a gaussian process. 
+ \item Superscript in parenthesis is denotes a number of ``observations''. 
+ \item Subscript is coordinate: $\xj_i$ is the $i$th coordinate of $\xj \in \rr^d$.
+ \item $\xj \in \rr^d$ is the $j$th vector (point) in which we calcualte $\phi$.
+ \item $\fj : = \phi ( \xj ) - m(\xj)$: the true value at $\xj$ minus the prior.
+ \item $m: \rr ^d \to \rr$ the mean function. 
+ \item $\mn: \rr^d \to \rr$ is the posterior mean (interpolant) after observing $\fj = \phi (\xj) , j=1,...,n$.
+ \item $k: \rr ^d \times \rr ^d \to \rr$ the covariance function (kernel).
  \item $\kn: \rr^d \to \rr^n$ is such that $\kn_j(s) = k(\xj , s)$ where $1 \leq j \leq n$. 
  \item $K^{(n)} \in \rr^{ n\times n} $ is a Gram matrix: $K^{(n)}_{ij} = k(\xii , \xj)$.
  \item $\Kinvn = [K^{(n)}]^{-1}$.
  \item $\Kinvnm = [K^{(n-1)}]^{-1}$.
  \item Let $V: \rr^d \to \rr$ and $x \in \rr^d$. Then $\egp[ V(x) ]=\egp [V(x, \cdot)] =  \int_{\Omega} V(x, \xi) \mathbb{P}(d\xi) $
+ \item A collection of observations is capital. So $\Xn = ( x^{(1)} , ... , \xn )$, $\Fn = (f^{(1)} ,..., \fn)$  and $ \Mn = (m^{(1)} , ..., \mn)$.
 \end{itemize}
 
 
+
+
 \section{Block Inversion}
-We need to innvert covariance matrices. Moreover, we need to invert
+We need to invert covariance matrices. Moreover, we need to invert
 $$ \left( \begin{array}{cc}
 K   & k \\
 k^t & c \end{array} \right)
@@ -118,43 +154,43 @@ $$
 with:
 \begin{align}
  \begin{split}
-\bar{K} &=  \kinv + K^{-1}k\bar{c}k^t\kinv\\
-\bar{k} &=  -\kinv k\bar{c}\\
-\bar{c} &= (c - k^t\kinv k)^{-1} 
+\bar{K} &=  \Kinv + K^{-1}k\bar{c}k^t\Kinv\\
+\bar{k} &=  -\Kinv k\bar{c}\\
+\bar{c} &= (c - k^t\Kinv k)^{-1} 
  \end{split}
 \end{align}
 
 \section{A Lemma}
 We use the block inversion to prove the following:
 \begin{lemma}
-Let $f_n = \mu^{(n-1)}(\xn) =  k^{(n-1)}(\xn)K^{(-[n-1])}f^{(n-1)}$. Then $\mu^{(n-1)}(s) = \mu^{(n)}(s)$.
+Assume $\fn = \mnm(\xn) =  \knm(\xn)K^{(-[n-1])}\Fnm$. Then $\mnm(s) = \mn(s)$.
 \end{lemma}
 \begin{proof}
  For this proof we fix $s\in \rr ^{d}$ and denote:
 \begin{itemize}
- \item $\kinv := K^{(-[n-1])}$ 
- \item $k : = k^{(n-1)}(\xn)$
+ \item $\Kinv := \Kinvnm$ 
+ \item $k : = \knm(\xn)$
  \item $c := k(\xn,\xn)$
- \item $f = f^{(n-1)}$ 
- \item $a : = \mu^{(n-1)}(\xn) = k^t\kinv f$ (using the above notation)
- \item $k(s) = k^{(n-1)}(s)$
- \item $\bar{c} := (c - k^t\kinv k)^{-1}$. 
- \item $a = \mu(s) : = \mu^{(n-1)}(s)$
+ \item $f = \fnm$ 
+ \item $a : = \mnm(\xn) = k^t\Kinv f$ (using the above notation)
+ \item $k(s) = \knm(s)$
+ \item $\bar{c} := (c - k^t\Kinv k)^{-1}$. 
+ \item $a = m(s) : = \mnm(s)$
 \end{itemize}
-Then $\mu^{(n-1)}(s) = k^t\kinv f$ and we may express $\mu^{(n)}(s)$ using the block inversion.
+Then $\mnm(s) = k^t\Kinv f$ and we may express $\mn(s)$ using the block inversion.
 
 
 \begin{align}
  \begin{split}
 %
-\mu^{(n)}(s) &= \left( \begin{array}{cc}
+\mn(s) &= \left( \begin{array}{cc}
  k^t(s)  & k(\xn, s)  
 \end{array} \right)
 %
 %
 \left( \begin{array}{cc}
-\kinv + \kinv k \bar{c} k^t \kinv  &  -\kinv k \bar{c} \\
--k^t\kinv \bar{c}   &  \bar{c}
+\Kinv + \Kinv k \bar{c} k^t \Kinv  &  -\Kinv k \bar{c} \\
+-k^t\Kinv \bar{c}   &  \bar{c}
  \end{array} \right)
 %
 %
@@ -176,8 +212,8 @@ Then $\mu^{(n-1)}(s) = k^t\kinv f$ and we may express $\mu^{(n)}(s)$ using the b
 %
 %
 \left( \begin{array}{cc}
-\kinv + \kinv k \bar{c} k^t \kinv  &  -\bar{c}\kinv k  \\
--\bar{c}k^t\kinv   & \bar{c}
+\Kinv + \Kinv k \bar{c} k^t \Kinv  &  -\bar{c}\Kinv k  \\
+-\bar{c}k^t\Kinv   & \bar{c}
  \end{array} \right)
 %
 %
@@ -186,84 +222,142 @@ Then $\mu^{(n-1)}(s) = k^t\kinv f$ and we may express $\mu^{(n)}(s)$ using the b
   \end{array} \right) \\\\
 %
 %
-&=  k^t(s)(\kinv + \kinv k \bar{c}k^t \kinv )f - a\bar{c} k^t(s) \kinv k  -\bar{c} k(\xn,s) k^t\kinv f + \bar{c}a k(\xn,s) \\\\
+&=  k^t(s)(\Kinv + \Kinv k \bar{c}k^t \Kinv )f - a\bar{c} k^t(s) \Kinv k  -\bar{c} k(\xn,s) k^t\Kinv f + \bar{c}a k(\xn,s) \\\\
 %
 %%
 %
-&=  k^t(s)\kinv f + \bar{c}[k^t(s)\kinv k\cdot  k^t \kinv f - a k^t(s) \kinv k \\
- &\ \ \ \ \ \ \ \ \ \ \ \ \ - k(\xn, s) k^t\kinv f + a k(\xn,s)] \\\\
+&=  k^t(s)\Kinv f + \bar{c}[k^t(s)\Kinv k\cdot  k^t \Kinv f - a k^t(s) \Kinv k \\
+ &\bars - k(\xn, s) k^t\Kinv f + a k(\xn,s)] \\\\
 %
 %
 %
-&= \mu (s) + \bar{c}[k^t(s)\kinv k\cdot  \mu (\xn) -\mu(\xn) k^t(s) \kinv k \\
- &\ \ \ \ \ \ \ \ \ \ \ \ \ - k(\xn, s) \mu(\xn) + \mu(\xn) k(\xn,s)] \\\\
+&= m(s) + \bar{c}[k^t(s)\Kinv k\cdot  m (\xn) -m(\xn) k^t(s) \Kinv k \\
+ &\bars - k(\xn, s) m(\xn) + m(\xn) k(\xn,s)] \\\\
 %
 %
 %
-& = \mu(s) = \mu^{(n-1)} (s)
+& = m(s) = \mnm (s)
 \end{split}
 \end{align}
 \end{proof}
 
-The bottom line is that the observation $f( \xn ,\omega) = \mu^{(n-1)}(\xn)$ changes nothing.
+The bottom line is that the observation $f( \xn ,\omega) = \mnm(\xn)$ doesn't change the posterior mean (only the posterior variance).
 
 
 
+
+%
+%%
+%%%
+%%%%
+%%%%%
+%%%%%%
+%%%%%%%
+%%%%%%%%
+%%%%%%%%%
+%%%%%%%%%%
+%%%%%%%%%%%
+%%%%%%%%%%%%
+%%%%%%%%%%%%%
+%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Average Variance}
+We seek $\argmin_{\xn} \en\int  \var[ \exp( \mn(s) )] ds$. This means the we first ``imagine'' we observe $f(\xn)$ and
+then calculate how much this ``observation'' changes the total variance. We then average over $f(\xn)$.
+Recall that the if $X \sim \mathcal{N}(\mu, \sigma^2)$, then $\mathbb{E}[e^X] = e^{\mu + \frac{\sigma^2}{4}}$ and 
+$\var[e^X] = (e^{\sigma^2} - 1) e^{2\mu + \sigma^2}$:
+\begin{align}
+\begin{split}
+%
+&\en\int  \var[ \exp( f(s) )] ds  \\
+%
+&=\en\int  \var[ \exp( \mn(s) + \sqn(s) )] ds  \\
+%%
+&=\en\int (e^{\sqn(s)} -1) e^{2\mn(s)+\sqn(s)}ds\\
+%
+%
+&=\int \en[e^{2\mn(s)}] (e^{\sqn(s)} -1) e^{\sqn(s)}ds\\
+\end{split}
+\end{align}
 
+Let us focus on $\en[e^{2\mn(s)}]$ first:
 
-
-We seek $\argmin_{\xn}$ of
 \begin{align}
  \begin{split}
+\en[e^{2\mn(s)}] &= \en[\exp( 2m(s) + 2\kn(s)\Kinvn \Fn]\\
 %
-&\int  \vgp[ \exp( k^{(n)}(s)K^{(-n)}f + f_\pr(s) )]  ds  \\\\
 %
-&=\int e^{2f_\pr(s)}  \vgp[ \exp(\sum_{i,j=1}^{n} k(s,\xii)K_{ij}^{(-n)}f_j )  ]  ds\\\\
+%  
+&= \en[\exp( 2m(s) + 2\sum_{i,j=1}^n k(s,\xii) \Kinvn_{ij} \fj]\\
 %
-&=\int e^{2f_\pr(s)}  \vgp[ \exp(\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + \sum_{i=1}^n k(s,\xii)K_{in}^{(-n)}f_n(\omega) )  ]  ds\\\\
 %
-&=\int e^{2f_\pr(s)}  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j)  \vgp[\exp( \sum_{i=1}^n k(s,\xii)K_{in}^{(-n)}f_n(\omega) ) ] ds\\\\
 %
-&=\int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \vgp [\exp( \vns f_n )]  ds,\\\\
+%  
+&= e^{ 2m(s) + 2\sum_{i=1}^n\sum_{j=1}^{n-1} k(s,\xii) \Kinvn_{ij} \fj} \en[\exp(2\sum_{i=1}^n k(s,\xii) \Kinvn_{in} (f(\xn) - m(\xn)))]\\
 %
+%
+%  
+&= e^{ 2m(s) + 2\sum_{i=1}^n\sum_{j=1}^{n-1} k(s,\xii) \Kinvn_{ij} \fj} \en[\exp(2\vns \fmm (\xn)) ]\\
  \end{split}
 \end{align}
 
+where we denote:
+\begin{itemize}
+ \item  $\vns := \sum_{i=1}^n k(s,\xii)\Kinvn_{in}$,
+ \item $\fmm (\cdot) := f(\cdot) - m(\cdot)$. 
+\end{itemize}
 
-where we denote $\vns := \sum_{i=1}^n k(s,\xii)\Kinvn_{in}$. By our assumptions, $\vns f_n(\omega) \sim \mathcal{N}(\vns\munxn,
-\vnssqr \signxn)$.
-This means that 
+By our assumptions, $f(\xn) \sim \mathcal{N} (\mnm(\xn) , \sqnm (\xn))$ and so $\fmm (\xn) \sim \mathcal{N}(\mnm (\xn) - m(x) , \sqnm (\xn))$.
 
 $$
-\vgp[e^{\vns f_n(\omega)}] = (e^{\vnssqr}\signxn - 1) \exp( 2\vns\munxn + \vnssqr\signxn )
+    2\vns \fmm(\xn) \sim \mathcal{N}( 2\vns[\mnm(\xn) - m(\xn)] , 4\vns^2 \sqnm (\xn)),
 $$
 
-We plug this in the above series of equalities and define $f_n :=\munxn, \sigma^2: = \signxn$:
+where $\sqnm (\cdot)$ is the posterior variance after making $n-1$ ``observations''.  We conclude: 
+
+$$
+    \en[e^{2\vns \fmm(\xn)}] = e^{2\vns[\mnm(\xn) - m(\xn)] + \vns^2 \sqnm (\xn) }
+$$
+
+
+
+We continue the above series of equalities:
 
 \begin{align}
  \begin{split}
-&= \int  \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2f_\pr(s)) \cdot 
-	      (e^{\vnssqr\sigma^2 } - 1)\exp( 2\vns f_n + \vnssqr \sigma^2 )  ds,\\
-%
-&= \int \exp(2\sum_{i=1}^{n}\sum_{j=1}^{n-1}  k(s,\xii)K_{ij}^{(-n)}f_j + 2\vns f_n + 2f_\pr(s)) 
-	(e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds,\\
-%%
-&= \int \exp(2\kn(s)\Kinvn f + 2f_\pr(s)) \cdot  (e^{\vnssqr \sigma^2 } - 1)\exp( \vnssqr \sigma^2 )  ds\\\\
 %
 %
 %
-&= \int \exp(2\kn(s)\Kinvn f + 2f_\pr(s)) (e^{2 \vnssqr\sigma^2 } - e^{\vnssqr \sigma^2 }) ds\\\\
+&=\int \en[e^{2\mn(s)}] (e^{\sqn(s)} -1) e^{\sqn(s)}ds\\
 %
 %
 %
-&=\int \exp(2k^{(n-1)}(s)\Kinvnm f + 2f_\pr(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr \sigma^2 }) ds\\\\ 
+&=\int e^{ 2m(s) + 2\sum_{i=1}^n\sum_{j=1}^{n-1} k(s,\xii) \Kinvn_{ij} \fj} (e^{\sqn(s)} -1) e^{\sqn(s)}\\
+&\bars			 e^{2\vns[\mnm(\xn) - m(\xn)] + \vns^2 \sqnm (\xn) } ds\\
 %
 %
 %
 %
-&=\int \exp(2\mu^{(n-1)}(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr \sigma^2 }) ds \text{ (by the lemma) }\\\\ 
+&=\int \exp( 2m(s) + 2\sum_{i=1}^n\sum_{j=1}^{n-1} k(s,\xii) \Kinvn_{ij} \fj + 2\vns[\mnm(\xn) - m(\xn)] )\\ 
+&\bars			 (e^{\sqn(s)} -1) \exp( \sqn(s) + \vns^2 \sqnm (\xn) ) ds\\
+%
+%
+%
+&=\int \exp( 2m(s) + 2\sum_{i=1}^n\sum_{j=1}^{n-1} k(s,\xii) \Kinvn_{ij} \fj + 2\sum_{i=1}^n k(s,\xii)\Kinvn_{in}[\mnm(\xn) - m(\xn)] )\\ 
+&\bars			 (e^{\sqn(s)} -1) \exp( \sqn(s) + \vns^2 \sqnm (\xn) ) ds\\
+%
+%
+%
+&=\int \exp( 2\mnm (s) ) (e^{\sqn(s)} -1) \exp( \sqn(s) + \vns^2 \sqnm (\xn) ) ds\\
+%
 %
 %
 \end{split}
@@ -287,6 +381,24 @@ that in the matrix block inversion, $\bar{c} =\frac{1}{\sqnm (\xn)}$
   &= \frac{[k(s, \xn) - < k^{(n-1)}(s) ,  \Kinvnm k^{(n-1)}(\xn) > ]^2}{\sqnm(\xn)} \\
 \end{split}
 \end{align}
+
+and so we continue the above derivation:
+
+\begin{align}
+ \begin{split}
+%
+%
+&=\int \exp( 2\mnm (s) ) (e^{\sqn(s)} -1) \exp( \sqn(s) + \vns^2 \sqnm (\xn) ) ds\\
+%
+%
+%
+&=\int \exp( 2\mnm (s) ) (e^{\sqn(s)} -1) \exp( \sqn(s) + \frac{ [k(s,\xn) -\knm(s) \Kinvnm \knm(\xn)]^2 }{ \sqnm(\xn)}  ) ds\\
+%
+%
+ \end{split}
+\end{align}
+
+
 
 We need to differentiate this wrt $\xn$.
 
@@ -336,26 +448,26 @@ $\argmin_{\xn}$ of the average variance and so we need to find derivatives.
 
 \begin{align}
  \begin{split}
- & \gxn \int \exp(2\mu^{(n-1)}(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
+ & \gxn \int \exp(2\mnm(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
 %
 %
 % 
-&=  \int \exp(2\mu^{(n-1)}(s)) \gxn (e^{2\vnssqr\sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
+&=  \int \exp(2\mnm(s)) \gxn (e^{2\vnssqr\sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
 %
 %
-%
-%
-%
-% 
-&=  \int \exp(2\mu^{(n-1)}(s)) \nabla (e^{2g(s) } - e^{g(s)}) ds \\
-%
-%
-% 
 %
 %
 %
 % 
-&=  \int \exp(2\mu^{(n-1)}(s)) (2e^{2g(s) } - e^{g(s)})\nabla g(s)\  ds \\
+&=  \int \exp(2\mnm(s)) \nabla (e^{2g(s) } - e^{g(s)}) ds \\
+%
+%
+% 
+%
+%
+%
+% 
+&=  \int \exp(2\mnm(s)) (2e^{2g(s) } - e^{g(s)})\nabla g(s)\  ds \\
 %
 %
 % 
@@ -370,8 +482,8 @@ $\argmin_{\xn}$ of the average variance and so we need to find derivatives.
  \end{split}
 \end{align}
 
-where $Z_k$ are drawn using the log likelihood $2\mu^{(n-1)}(\cdot)$ (note the $2$ in there). We do not need to normalize it since it does not depend 
-on $x^{(n)}$ and so this normalization is only a constant factor.
+where $Z_k$ are drawn using the log likelihood $2\mnm(\cdot)$ (note the $2$ in there). We do not need to normalize it since it does not depend 
+on $\xn$ and so this normalization is only a constant factor.
 
 
 \section{Xtras}
