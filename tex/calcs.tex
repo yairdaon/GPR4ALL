@@ -112,6 +112,9 @@
 
 
 \begin{document}
+\section{Intro}
+I derive the objective function for the optimal experimental design. The first five sections are preparations that will be used in the
+long calculation that follows.
 
 \section{Notation}
 Some notation I will use:
@@ -244,6 +247,92 @@ Then $\mnm(s) = k^t\Kinv f$ and we may express $\mn(s)$ using the block inversio
 The bottom line is that the observation $f( \xn ,\omega) = \mnm(\xn)$ doesn't change the posterior mean (only the posterior variance).
 
 
+
+\section{Derivatives}
+In what follows, we temporarily denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $, suppressing 
+the dependence on $s$. 
+\begin{align}
+ \begin{split}
+  %\gxn \left[ \vnssqr\sqnm(\xn) \right] &=
+ &\gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
+%
+%
+%
+%
+&= \gxn \frac{ u^2 (\xn) }{\signxn}\\\\
+%
+%
+%
+&=\frac{ 2u(\xn)\gxn u(\xn) \signxn}{(\signxn)^2} \\
+	    &\bars- \frac{\gxn \signxn u^2(\xn)}{(\signxn)^2} \\\\
+%
+%
+%
+&=\frac{ 2u(\xn)}{\signxn} \gxn u(\xn)\\
+	    &\bars- \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+%
+%
+%
+%
+&=\frac{ 2u(\xn)}{\signxn} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2u(\xn)}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
+	    &\bars - \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+%
+%
+%
+%
+%
+%
+%
+ \end{split}
+\end{align}
+
+
+\section{Xtras}
+Start with easy sneezy.
+\begin{align}
+ \begin{split}
+  \gxn k(\xn,s) &= \gxn c\exp(-\frac{||\xn - s||^2}{2r^2} )\\
+%
+&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
+%
+&= -\frac{k(\xn,s)}{2r^2} \gxn||\xn - s||^2 \\
+%
+&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\\
+ \end{split}
+\end{align}
+
+In the following, gradient is taken with respect to $s$.
+
+\begin{align}
+ \begin{split}
+  \nabla \sqn (s) &= \nabla [ c - \kn(s) \Kinvn \kn(s)]\\\\
+%
+%
+%
+&= -2 \kn(s) \Kinvn \nabla\kn(s)\\\\
+%
+%
+%
+&= -2 \sum_{i,j=1}^{n} \kn(s)_j \Kinvn_{ji} \nabla k (s, \xii )\\\\
+%
+%
+%
+&= 2 \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} \frac{k(\xii ,s)}{r^2} (s-\xii)\\\\
+%
+%
+%
+&= \frac{2}{r^2} \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} k(\xii ,s) (s-\xii)\\\\
+ \end{split}
+\end{align}
+
+Consequently:
+
+\begin{align}
+ \begin{split}
+  \gxn \signxn &= \frac{2}{r^2} \sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+ \end{split}
+\end{align}
 
 
 %
@@ -382,17 +471,79 @@ that in the matrix block inversion, $\bar{c} =\frac{1}{\sqnm (\xn)}$
 %
 \end{split}
 \end{align}
-We also rewrite $\sqn(s)$ using matrix block inversion. Now $k = \knm(\xn)$, $K = \Kinvnm $ and $c = k(s,s)$:
+
+We also rewrite $\sqn(s)$ using matrix block inversion. Now $k = \knm(\xn)$, $K = \Kinvnm $ and $c = k(s,s)$.
 
 \begin{align}
 \begin{split}
- \sqn(s) &= k(s,s) - [\kn(s)]^t \Kinvn \kn(s) \\
+%
+%
+\kn(s)\Kinvn \kn(s) &= \knm(s) \bar{K} \knm(s) + 2k(s,\xn)\bar{k}^t\knm(s) + \bar{c}k(s,\xn)^2 \\
+%
+%
+%
+% 
+&= \knm(s) \bar{K} \knm(s) + 2k(s,\xn)\bar{k}^t\knm(s) + \bar{c}k(s,\xn)^2 \\
 %
 %
 %
 %
-&= k(s,s) - [\knm(s)]^t \bar{K} \knm(s)
+&= \knm(s) (\Kinvnm + \Kinvnm \knm(\xn)\bar{c} \knm(\xn) \Kinvnm )\knm(s)\\
+&\bars  -2k(s,\xn)\bar{c}\knm(\xn)\Kinvnm \knm(s) + \bar{c}k(s,\xn)^2\\
+%
+%
+%
+&= \knm(s) \Kinvnm \knm(s) \\
+&\bars + \bar{c}[ \knm(s) \Kinvnm \knm(\xn)\knm(\xn) \Kinvnm \knm(s)\\
+&\bars  -2k(s,\xn)\knm(\xn)\Kinvnm \knm(s) + k(s,\xn)^2]\\
+%
+%
+%
+&= \knm(s) \Kinvnm \knm(s) \\
+&\bars + \bar{c}[ (\knm(s) \Kinvnm \knm(\xn))^2\\
+&\bars  -2k(s,\xn)\knm(\xn)\Kinvnm \knm(s) + k(s,\xn)^2]\\
+%
+%
+%
+&= \knm(s) \Kinvnm \knm(s) \\
+&\bars + \frac{1}{\sqnm(\xn)}[ (\knm(s) \Kinvnm \knm(\xn))^2\\
+&\bars   -2k(s,\xn)\knm(\xn)\Kinvnm \knm(s) + k(s,\xn)^2]\\
+%
+%
+%
 \end{split}
+\end{align}
+
+This implies that:
+
+\begin{align}
+ \begin{split}
+%
+%
+%
+%
+  \sqn(s) &= k(s,s) - \kn(s)\Kinvn \kn(s)\\
+%
+%
+%
+%
+&= \sqnm (s) -\frac{1}{\sqnm(\xn)}[ (\knm(s) \Kinvnm \knm(\xn))^2\\
+&\bars   -2k(s,\xn)\knm(\xn)\Kinvnm \knm(s) + k(s,\xn)^2]\\
+%
+%
+%
+&= \sqnm (s) -\frac{[ \knm(s) \Kinvnm \knm(\xn) -k(s,\xn)]^2}{\sqnm(\xn)}\\
+%
+%
+%
+ \end{split}
+\end{align}
+
+Thus:
+\begin{align}
+ \begin{split}
+  \sqn(s) + \frac{ [k(s,\xn) -\knm(s) \Kinvnm \knm(\xn)]^2 }{ \sqnm(\xn)} &= \sqnm(s) \\
+ \end{split}
 \end{align}
 
 and so we continue the above derivation:
@@ -408,140 +559,66 @@ and so we continue the above derivation:
 &=\int \exp( 2\mnm (s) ) (e^{\sqn(s)} -1) \exp( \sqn(s) + \frac{ [k(s,\xn) -\knm(s) \Kinvnm \knm(\xn)]^2 }{ \sqnm(\xn)}  ) ds\\
 %
 %
- \end{split}
-\end{align}
-
-
-
-We need to differentiate this wrt $\xn$.
-
-
-
-\section{Derivatives}
-In what follows, we temporarily denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $, suppressing 
-the dependence on $s$. 
-\begin{align}
- \begin{split}
-  \gxn \left[ \vnssqr\sqnm(\xn) \right] &= \gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
 %
 %
-%
-%
-&= \gxn \frac{ u^2 (\xn) }{\signxn}\\\\
-%
-%
-%
-&=\frac{ 2u(\xn)\gxn u(\xn) \signxn}{(\signxn)^2} \\
-	    &\bars- \frac{\gxn \signxn u^2(\xn)}{(\signxn)^2} \\\\
-%
-%
-%
-&=\frac{ 2u(\xn)}{\signxn} \gxn u(\xn)\\
-	    &\bars- \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
-%
-%
-%
-%
-&=\frac{ 2u(\xn)}{\signxn} \gxn k(s , \xn) \\
-	    &\bars - \frac{ 2u(\xn)}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
-	    &\bars - \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+&=\int \exp( 2\mnm (s) ) (e^{\sqn(s)} -1) \exp( \sqnm(s) ) ds\\
 %
 %
 %
 %
 %
+&=\int \exp( 2\mnm (s) +\sqnm(s) ) (e^{\sqn(s)} -1) ds\\
 %
 %
  \end{split}
 \end{align}
 
-
-In what follows, we hold $n$ fixed and denote $g(s) : = \vnssqr \sqnm(\xn)$ and $\nabla g(s)$ its gradient wrt $\xn$. We wish to find 
-$\argmin_{\xn}$ of the average variance and so we need to find derivatives.
+Recall that we would like to optimize the above quantity. We use SAA. We take a sample $Z_j \sim \exp( 2\mnm (s) +2\sqnm(s) )$.
 
 \begin{align}
  \begin{split}
- & \gxn \int \exp(2\mnm(s)) (e^{2\vnssqr \sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
-%
-%
-% 
-&=  \int \exp(2\mnm(s)) \gxn (e^{2\vnssqr\sigma^2 } - e^{\vnssqr\sigma^2 }) ds \\
+  &\argmin_{\xn} \en\int  \var[ \exp( \mn(s) )]ds \\
 %
 %
 %
 %
-%
-% 
-&=  \int \exp(2\mnm(s)) \nabla (e^{2g(s) } - e^{g(s)}) ds \\
-%
-%
-% 
+&=\argmin_{\xn}\int \exp( 2\mnm (s) +\sqnm(s) ) (e^{\sqn(s)} -1) ds\\
 %
 %
 %
-% 
-&=  \int \exp(2\mnm(s)) (2e^{2g(s) } - e^{g(s)})\nabla g(s)\  ds \\
 %
-%
-% 
+&=\argmin_{\xn}\int \exp( 2\mnm (s) +\sqnm(s) )\exp( \sqnm (s) \\
+&\bars -\frac{[ \knm(s) \Kinvnm \knm(\xn) -k(s,\xn)]^2}{\sqnm(\xn)})  ds\\
 %
 %
 %
-% 
-&\approx \frac{1}{n_s}  \sum_{k=1}^{n_s} (2e^{2g(Z_k) } - e^{g(Z_k)})\nabla g(Z_k), \\
+&=\argmin_{\xn}\int \exp( 2\mnm (s) +2\sqnm(s) )e^{-\frac{[ \knm(s) \Kinvnm \knm(\xn) -k(s,\xn)]^2}{\sqnm(\xn)}}  ds\\
 %
 %
-% 
+%
+%
+&\approx \argmin_{\xn} \frac{1}{N}\sum_{j=1}^{N} \exp(-\frac{[ \knm(Z_j) \Kinvnm \knm(\xn) -k(Z_j,\xn)]^2}{\sqnm(\xn)})\\
+%
+%
+%
+%
  \end{split}
 \end{align}
 
-where $Z_k$ are drawn using the log likelihood $2\mnm(\cdot)$ (note the $2$ in there). We do not need to normalize it since it does not depend 
-on $\xn$ and so this normalization is only a constant factor.
 
+\section{Conclusion}
+Take an iid sample $Z_j \sim \exp( 2\mnm (s) +2\sqnm(s) )$. We seek $\argmin_{\xn}$ of:
+$$
+\sum_{j=1}^{N} \exp(-\frac{[ \knm(Z_j) \Kinvnm \knm(\xn) -k(Z_j,\xn)]^2}{\sqnm(\xn)}).
+$$
 
-\section{Xtras}
-Start with easy sneezy.
-\begin{align}
- \begin{split}
-  \gxn k(\xn,s) &= \gxn c\exp(-\frac{||\xn - s||^2}{2r^2} )\\
-%
-&= -k(\xn,s) \gxn\frac{||\xn - s||^2}{2r^2} \\
-%
-&= -\frac{k(\xn,s)}{2r^2} \gxn||\xn - s||^2 \\
-%
-&= -\frac{k(\xn ,s)}{r^2} (\xn-s)\\
- \end{split}
-\end{align}
-
-In the following, gradient is taken with respect to $s$.
+Denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $. The gradient is:
 
 \begin{align}
  \begin{split}
-  \nabla \sqn (s) &= \nabla [ c - \kn(s) \Kinvn \kn(s)]\\\\
-%
-%
-%
-&= -2 \kn(s) \Kinvn \nabla\kn(s)\\\\
-%
-%
-%
-&= -2 \sum_{i,j=1}^{n} \kn(s)_j \Kinvn_{ji} \nabla k (s, \xii )\\\\
-%
-%
-%
-&= 2 \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} \frac{k(\xii ,s)}{r^2} (s-\xii)\\\\
-%
-%
-%
-&= \frac{2}{r^2} \sum_{i,j=1}^{n} k(s,\xj) \Kinvn_{ji} k(\xii ,s) (s-\xii)\\\\
- \end{split}
-\end{align}
-
-Consequently:
-
-\begin{align}
- \begin{split}
-  \gxn \signxn &= \frac{2}{r^2} \sum_{i,j=1}^{n-1} k(\xn,\xj) \Kinvnm_{ji} k(\xii ,\xn) (\xn-\xii)\\\\
+&\sum_{j=1}^{N} \exp(-u(\xn))[ \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
+	    &\bars - \frac{u^2(\xn)}{(\sqnm(\xn))^2}\gxn \sqnm (\xn)] \\\\.
  \end{split}
 \end{align}
 
