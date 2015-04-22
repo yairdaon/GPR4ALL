@@ -6,15 +6,27 @@ saa: $(SO_FILES)
 movie: $(SO_FILES)
 	python2.7 gpr4all/Test_Movie1D.py
 movie2:$(SO_FILES)
-	python2.7 gpr4all/TestMovie2D.py
+	python2.7 gpr4all/Test_Movie2D.py
 
 # creating the SO files
 gpr4all/_aux.so: $(C_FILES)
-	make build
+	python2.7 gpr4all/C/setup_aux.py build_ext --inplace
+	rm -rvf build
+	mv _aux.so gpr4all
+	mkdir -p graphics Data Data/Movie1DFrames Data/Movie2DContourFrames
+
 gpr4all/_g.so: $(C_FILES)
-	make build
+	python2.7 gpr4all/C/setup_g.py build_ext --inplace
+	rm -rvf build
+	mv _g.so gpr4all
+	mkdir -p graphics Data Data/Movie1DFrames Data/Movie2DContourFrames
+
 gpr4all/_krigger.so: $(C_FILES)
-	make build
+	python2.7 gpr4all/C/setup_krigger.py build_ext --inplace
+	rm -rvf build
+	mv _krigger.so gpr4all
+	mkdir -p graphics Data Data/Movie1DFrames Data/Movie2DContourFrames
+
 build:
 	python2.7 gpr4all/C/setup.py build_ext --inplace
 	rm -rvf build
@@ -25,7 +37,7 @@ build:
 clean:
 	rm -rvf gpr4all/*.pyc gpr4all/C/*.pyc graphics Data build gpr4all/C/build 
 	rm -rvf gpr4all/C/*.h~ gpr4all/C/*.c~ *~ *.so*  tests/*.pyc gpr4all/*.so
-	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup tex/*.log tex/*.aux	
+	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup tex/*.log tex/*.aux
 	clear
 
 # push git repository

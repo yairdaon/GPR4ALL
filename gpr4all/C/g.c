@@ -36,11 +36,7 @@ struct valGrad avgVar(double *U, double *S, double *V,
   for (i = 0; i < nsteps ; i++) {
    
     // copy the current vector into Zi
-    memcpy(Zi , sample + i*veclen, veclen*sizeof(double));
-    for( j = 0 ; j < veclen ; j++){
-      if  (Zi[j] != sample[i*veclen + j])
-	      printf("Error!\n");
-    }
+    memcpy(Zi , sample + i*veclen, veclen*sizeof(double));    
     
     // get g and its grad for current sample Zi
     tmp = g( U, S, V, X, Zi, xn, r, d, reg, nvecs, veclen);
