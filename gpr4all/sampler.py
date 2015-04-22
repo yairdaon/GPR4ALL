@@ -142,7 +142,7 @@ class Sampler(object):
         sample = self.var_sample(2000)
         target = _g.avg_var
         specs  = self.specs
-	soArgs   = ( specs.U, specs.S, specs.V,
+        soArgs   = ( specs.U, specs.S, specs.V,
                    specs.Xarr, sample,
                    specs.r , specs.d, specs.reg )
             
@@ -158,8 +158,9 @@ class Sampler(object):
                 bestValue = result.fun
                 bestPoint = result.x
             
-       
+       	
         bestPoint = bestPoint.reshape(self.ndim,)
+        print bestPoint        
         return bestPoint
                     
 

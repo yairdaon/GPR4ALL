@@ -27,4 +27,4 @@ oldg*.*
 # specific files
 preparations.py
 gpr4all/tmp.py
-gpr4all/Test_*
+gpr4all/Test_Movie*
