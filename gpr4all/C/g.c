@@ -12,7 +12,7 @@ struct valGrad avgVar(double *U, double *S, double *V,
 		      double r, double d, double reg,
 		      int nvecs, int veclen, int nsteps) {
   /*
-   * return sum and its gradient
+   * return the average varaince and its gradient
    * dimensions of variables:
    * U	 is an nvecs    by   nvecs     matrix
    * V	 is an nvecs    by   nvecz     matrix
@@ -25,36 +25,37 @@ struct valGrad avgVar(double *U, double *S, double *V,
   
   // allocate memory and get datum here. only last bit is interesting
   int i,j; 
-  double value = 0.0;
-  double expg, gradcoef;
+  double objective = 0.0;
+  double expNegG, gradcoef;
   struct valGrad tmp;
 
   // empty \ zero arrays
   double *grad = calloc( (size_t)veclen , sizeof(double));//all zeros
-  double *Zi   = malloc(veclen * sizeof(double));
+  double *Zi   = malloc( veclen * sizeof(double));
 
   for (i = 0; i < nsteps ; i++) {
-    
-
+   
     // copy the current vector into Zi
+    memcpy(Zi , sample + i*veclen, veclen*sizeof(double));
     for( j = 0 ; j < veclen ; j++){
-      Zi[j] = sample[i*veclen + j];
+      if  (Zi[j] != sample[i*veclen + j])
+	      printf("Error!\n");
     }
-
+    
     // get g and its grad for current sample Zi
     tmp = g( U, S, V, X, Zi, xn, r, d, reg, nvecs, veclen);
     
-    expg = exp(tmp.value); 
+    expNegG = exp(-tmp.value); 
 
     // add to the sum
-    value += expg*expg - expg;
+    objective += expNegG;
     
     // the ith coeffiicient:
-    gradcoef  =  2*expg*expg - expg;
+    gradcoef  = expNegG;
 
     // add the gradient
     for( j = 0 ; j < veclen ; j++) {
-      grad[j] += gradcoef*tmp.grad[j];
+      grad[j] -= gradcoef*tmp.grad[j];
     }
 
     // free the output of function g
@@ -68,7 +69,7 @@ struct valGrad avgVar(double *U, double *S, double *V,
 
   // build return value
   struct valGrad ret;
-  ret.value  = value;
+  ret.value  = objective;
   ret.grad   = grad;
 
   return ret;
@@ -81,7 +82,7 @@ struct valGrad avgVar(double *U, double *S, double *V,
 
 
 struct valGrad g(double *U, double *S, double *V,
-		 double *X, double *x, double *xn,
+		 double *X, double *Z, double *xn,
 		 double r, double d, double reg,
 		 int nvecs, int veclen) {
   /*
@@ -98,14 +99,14 @@ struct valGrad g(double *U, double *S, double *V,
 
   // allocate memory and get datum here. only last bit is interesting
   int j; 
-  double tmp, gValue;
-  double cv             = cov(x, xn, r, d, veclen);
-  double *y             = covVec( X, x, r, d, nvecs, veclen);
+  double gValue, u;
+  double cv             = cov(Z, xn, r, d, veclen); // k(Zj, xn)
+  double *y             = covVec( X, Z, r, d, nvecs, veclen); // k^(n-1)(Zj)
 
 
   // empty \ zero arrays
   //double *dummyZeroGrad = calloc( (size_t)veclen , sizeof(double));//all zeros
-  double *grad          = malloc(veclen * sizeof(double));
+  double *grad          = malloc(        veclen * sizeof(double));
   double *dummyZeroGrad = calloc((size_t)veclen , sizeof(double));
 
   // we do "kriging" at xn but the "function values" are the vector y
@@ -125,17 +126,16 @@ struct valGrad g(double *U, double *S, double *V,
   double * gradSig2  = all.gradSig2;
 
   // value of g
-  tmp = cv - krig;
-  gValue = tmp*tmp/sigSqr;
-
-	
+  u = cv- krig;
+  gValue   = u*u/sigSqr;
+  
   // calcualte the coefficients of the gradients, see pdf file
-  double firstCoef   = -2.0*tmp*cv/(r*r*sigSqr);
-  double secondCoef  = -2.0*tmp/sigSqr;
-  double thirdCoef   = -tmp*tmp/(sigSqr*sigSqr);	
+  double firstCoef   = -2.0*u*cv/(r*r*sigSqr);
+  double secondCoef  = -2.0*u/sigSqr;
+  double thirdCoef   = -u*u/(sigSqr*sigSqr);	
 
   for ( j = 0 ; j < veclen ; j++) {
-    grad[j] = firstCoef*(xn[j] - x[j]) + secondCoef*gradKrig[j] 
+    grad[j] = firstCoef*(xn[j] - Z[j]) + secondCoef*gradKrig[j] 
       + thirdCoef*gradSig2[j];
   }
 

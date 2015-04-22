@@ -249,42 +249,63 @@ The bottom line is that the observation $f( \xn ,\omega) = \mnm(\xn)$ doesn't ch
 
 
 \section{Derivatives}
-In what follows, we temporarily denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $, suppressing 
+Denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $, suppressing 
 the dependence on $s$. 
+Let  $g(\xn,s) = \frac{u^2}{\sqnm(\xn)}$.
 \begin{align}
  \begin{split}
-  %\gxn \left[ \vnssqr\sqnm(\xn) \right] &=
- &\gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\signxn}\\\\
+%
+%
+%
+&\gxn g(\xn,s) \\
 %
 %
 %
 %
-&= \gxn \frac{ u^2 (\xn) }{\signxn}\\\\
-%
-%
-%
-&=\frac{ 2u(\xn)\gxn u(\xn) \signxn}{(\signxn)^2} \\
-	    &\bars- \frac{\gxn \signxn u^2(\xn)}{(\signxn)^2} \\\\
-%
-%
-%
-&=\frac{ 2u(\xn)}{\signxn} \gxn u(\xn)\\
-	    &\bars- \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+&=\gxn \frac{[k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > ]^2}{\sqnm(\xn)}\\
 %
 %
 %
 %
-&=\frac{ 2u(\xn)}{\signxn} \gxn k(s , \xn) \\
-	    &\bars - \frac{ 2u(\xn)}{\signxn} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
-	    &\bars - \frac{u^2(\xn)}{(\signxn)^2}\gxn \signxn \\\\
+&= \gxn \frac{ u^2 (\xn) }{\sqnm(\xn)}\\
+%
+%
+%
+&=\frac{ 2u(\xn)\gxn u(\xn) \sqnm(\xn)}{\sqnm(\xn)^2} \\
+	    &\bars- \frac{\gxn \sqnm(\xn) u^2(\xn)}{\sqnm(\xn)^2} \\\\
+%
+%
+%
+&=\frac{ 2u(\xn)}{\sqnm(\xn)} \gxn u(\xn)\\
+	    &\bars- \frac{u^2(\xn)}{\sqnm(\xn)^2}\gxn \sqnm(\xn) \\
+%
+%
+%
+%
+&=\frac{ 2u(\xn)}{\sqnm(\xn)} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
+	    &\bars - \frac{u^2(\xn)}{\sqnm(\xn)^2}\gxn \sqnm(\xn) \\
+%
+%
+%
+%
+&=\frac{ 2u(\xn)}{\sqnm(\xn)} \gxn k(s , \xn) \\
+	    &\bars - \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn u(\xn) \\
+	    &\bars - \frac{u^2(\xn)}{\sqnm(\xn)^2}\gxn \sqnm(\xn) \\
 %
 %
 %
 %
 %
 %
+&=\frac{ 2u(\xn)}{\sqnm(\xn)} \gxn [k(s , \xn) - u(\xn)] - \frac{u^2(\xn)}{\sqnm(\xn)^2}\gxn \sqnm(\xn) \\
 %
- \end{split}
+%
+%
+%
+%
+%
+\end{split}
 \end{align}
 
 
@@ -607,21 +628,24 @@ Recall that we would like to optimize the above quantity. We use SAA. We take a 
 
 
 \section{Conclusion}
-Take an iid sample $Z_j \sim \exp( 2\mnm (s) +2\sqnm(s) )$. We seek $\argmin_{\xn}$ of:
+Recall:
+\begin{itemize}
+ \item $u(\xn,Z_j) = k(Z_j, \xn)  - < \knm (Z_j) ,  \Kinvnm \knm (\xn) >$.
+ \item $g(\xn, Z_j) = \frac{u^2}{\sqnm( \xn )} $.
+ \item We take $Z_j \sim \exp( 2\mnm (\cdot) +2\sqnm(\cdot) ), j=1,...,N$.
+\item $\gxn g(\xn,Z_j) =\frac{ 2u(\xn, Z_j)}{\sqnm(\xn)} \gxn [k(s , \xn) - u(\xn, Z_j)] - \frac{u^2(\xn,Z_j)}{\sqnm(\xn)^2}\gxn \sqnm(\xn)$.
+ \end{itemize}
+
+
+We seek:
 $$
-\sum_{j=1}^{N} \exp(-\frac{[ \knm(Z_j) \Kinvnm \knm(\xn) -k(Z_j,\xn)]^2}{\sqnm(\xn)}).
+\argmin_{\xn} \sum_{j=1}^{N} \exp(-g(\xn, Z_j)).
 $$
 
-Denote $u(\xn) = k(s, \xn)  - < \knm (s) ,  \Kinvnm \knm (\xn) > $. The gradient is:
-
-\begin{align}
- \begin{split}
-&\sum_{j=1}^{N} \exp(-u(\xn))[ \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn k(s , \xn) \\
-	    &\bars - \frac{ 2u(\xn)}{\sqnm(\xn)} \gxn< \knm (s) ,  \Kinvnm \knm (\xn) > \\
-	    &\bars - \frac{u^2(\xn)}{(\sqnm(\xn))^2}\gxn \sqnm (\xn)] \\\\.
- \end{split}
-\end{align}
-
+The gradient is:
+$$
+-\sum_{j=1}^{N} \exp(-g(\xn,Z_j)) \gxn g(\xn, Z_j).
+$$
 
 \end{document}
 

@@ -116,7 +116,7 @@ class Sampler(object):
         we use twice the LL here
         '''
 
-        print("Starting SAA sample")
+        #print("Starting SAA sample")
         # the initial set of positions
         pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
         pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
@@ -128,7 +128,7 @@ class Sampler(object):
         sam.reset()
         pos, _ , self.state = sam.run_mcmc( pos, nsteps,self.state )
 
-        print("Finished SAA sampler")
+        #print("Finished SAA sampler")
         return sam.flatchain
     
 
@@ -160,7 +160,6 @@ class Sampler(object):
             
        
         bestPoint = bestPoint.reshape(self.ndim,)
-        print bestPoint
         return bestPoint
                     
 

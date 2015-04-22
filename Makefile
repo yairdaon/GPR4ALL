@@ -5,6 +5,8 @@ saa: $(SO_FILES)
 	python2.7 gpr4all/Test_ssa.py
 movie: $(SO_FILES)
 	python2.7 gpr4all/Test_Movie1D.py
+movie2:$(SO_FILES)
+	python2.7 gpr4all/TestMovie2D.py
 
 # creating the SO files
 gpr4all/_aux.so: $(C_FILES)
@@ -23,7 +25,7 @@ build:
 clean:
 	rm -rvf gpr4all/*.pyc gpr4all/C/*.pyc graphics Data build gpr4all/C/build 
 	rm -rvf gpr4all/C/*.h~ gpr4all/C/*.c~ *~ *.so*  tests/*.pyc gpr4all/*.so
-	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup	
+	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup tex/*.log tex/*.aux	
 	clear
 
 # push git repository
