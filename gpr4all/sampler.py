@@ -58,7 +58,7 @@ class Sampler(object):
         
     '''
     
-    def __init__(self, specs, nwalkers=100, burn=500 , noptimizers=20,
+    def __init__(self, specs, nwalkers=20, burn=100, noptimizers=20,
                                  maxiter = 7500, target = targets.atan_sig):
         '''
         create an instance, create walkers, let them walk
@@ -82,11 +82,6 @@ class Sampler(object):
         # the first decorrelation time. 
         self.decorTime = burn
         
-        # the initial set of positions
-        self.pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
-        self.pos = ( 2*self.pos  - 1.0 )*specs.r # shift and stretch
-        self.pos = self.pos.reshape((self.nwalkers, self.ndim)) # reshape
-        
         # set the initial state of the PRNG
         self.state = np.random.get_state()
         
@@ -97,7 +92,7 @@ class Sampler(object):
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
         
-        # max num of optimization iterations
+        # max num of optimization iterations`
         self.maxiter = maxiter
         
         # the function which we optimize
@@ -106,8 +101,13 @@ class Sampler(object):
         self.variances = []
         
         self.choose_point = self.min_var
-        
 
+    def rand_position(self):
+
+        pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
+        pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
+        pos = pos.reshape((self.nwalkers, self.ndim)) # reshape
+        return pos
 
     def var_sample(self, nsteps):
         '''
@@ -160,7 +160,7 @@ class Sampler(object):
             
        	
         bestPoint = bestPoint.reshape(self.ndim,)
-        print bestPoint        
+        # print bestPoint        
         return bestPoint
                     
 
@@ -181,12 +181,12 @@ class Sampler(object):
         
         # erase previous data so we do not accidentally use it
         self.sam.reset()
-        
+                
         # tell everybody we're not burned in
         self.didBurnIn = False
 
         # update our burnin time to something more reasonable
-        #self.burn = 2*self.decorTime
+        self.burn = 2*self.decorTime
     
            
     def run_mcmc(self, nsteps):
@@ -195,16 +195,15 @@ class Sampler(object):
         :param nsteps:
             the number of steps we let the emcee sampler run
         '''   
-        
 
-        self.pos, self.prob, self.state = self.sam.run_mcmc(
-                                                    self.pos, nsteps, self.state )
+        self.sam.run_mcmc( N=nsteps )
         
-#         self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc(
-#                                                     self.pos, nsteps, self.state ) 
+        # self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc( self.pos,
+        #                                                                  nsteps,
+        #                                                                  self.state ) 
         
-#         self.variances = np.ravel(np.asarray( self.blobs ))
-#         print("ran MCMC. shape of variances is " + str(self.variances.shape))
+        # self.variances = np.ravel(np.asarray( self.blobs ))
+        # print("ran MCMC. shape of variances is " + str(self.variances.shape))
         
         # update the decorrelation time
         dec = 2*np.max( self.sam.acor )
@@ -230,8 +229,9 @@ class Sampler(object):
             # run the MCMC to get new batch 
             self.run_mcmc(self.decorTime)
         
-        # create a copy of the positions, so nothing unexpected happens if we parallelize
-        samples = self.pos[:,:]
+        # create a copy of the positions, so nothing unexpected
+        # happens if we parallelize
+        samples = self.sam.chain[:,-1,:]
         
         # let them know we used this batch
         self.walkerInd = self.nwalkers
@@ -260,7 +260,7 @@ class Sampler(object):
             self.walkerInd = 0
         
         # we return the walker denoted by walkerInd     
-        sample =  self.pos[self.walkerInd,:]
+        sample = self.sam.chain[self.walkerInd,-1,:]
         
         # the next we return is the next unused walker in the list
         self.walkerInd = self.walkerInd + 1
@@ -278,11 +278,22 @@ class Sampler(object):
      
      
     def burnIn(self):
+        '''do the burn in phase. Make sure we have a run long enough to
+        calculate autocorrelation. Then reset.
+
         '''
-        do the burn in phase and reset
-        '''
-        self.run_mcmc(self.burn)
-        self.sam.reset()
+        self.sam.run_mcmc(N=self.burn,
+                          pos0=self.rand_position())
+        while True:
+            try:
+                self.acor = self.sam.acor
+                break
+            except mc.autocorr.AutocorrError:
+                self.burn = 2*self.burn
+                self.sam.run_mcmc(N=self.burn,
+                                  pos0=None)
+
+                print "Updated burn in time == " + str(self.burn)
         self.didBurnIn = True 
         self.walkerInd = 0
          

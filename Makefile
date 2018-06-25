@@ -1,12 +1,14 @@
-C_FILES  = gpr4all/C/g.c gpr4all/C/_g.c gpr4all/C/g.h gpr4all/C/aux.c gpr4all/C/_aux.c gpr4all/C/_krigger.c  gpr4all/C/krigger.c
+C_FILES = gpr4all/C/g.c gpr4all/C/_g.c gpr4all/C/g.h gpr4all/C/aux.c	\
+gpr4all/C/_aux.c gpr4all/C/_krigger.c gpr4all/C/krigger.c
+
 SO_FILES = gpr4all/_g.so gpr4all/_aux.so gpr4all/_krigger.so
 
 saa: $(SO_FILES)
-	python2.7 gpr4all/Test_ssa.py
+	python2.7 gpr4all/Test_saa.py
 movie: $(SO_FILES)
-	python2.7 gpr4all/Test_Movie1D.py
+	python tests/Test_Movie1D.py
 movie2:$(SO_FILES)
-	python2.7 gpr4all/Test_Movie2D.py
+	python2.7 tests/Test_Movie2D.py
 
 # creating the SO files
 gpr4all/_aux.so: $(C_FILES)
