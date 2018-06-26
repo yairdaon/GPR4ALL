@@ -39,8 +39,6 @@ class Sampler(object):
     :param useInfoGain: boolean, whether we use the information gain 
 		criterion for adding points. Set to False by default, until
 		I can make it work faster and better.
-    :param state:
-        state of the random number generator
     :param walkerInd:
         the index of the nex walker we return if we take a single 
         sample. if walkerInd == nwalkers then we know we don't 
@@ -58,15 +56,21 @@ class Sampler(object):
         
     '''
     
-    def __init__(self, specs, nwalkers=20, burn=100, noptimizers=20,
-                                 maxiter = 7500, target = targets.atan_sig):
+    def __init__(self,
+                 specs,
+                 nwalkers=20,
+                 burn=100,
+                 noptimizers=20,
+                 maxiter = 7500,
+                 target = targets.atan_sig):
+                 
         '''
         create an instance, create walkers, let them walk
         '''
         
         # keep the configuration object till the rest of time
         self.specs = specs
-    
+
         # the number of space dimensions
         self.ndim = len(specs.X[0])
             
@@ -82,13 +86,10 @@ class Sampler(object):
         # the first decorrelation time. 
         self.decorTime = burn
         
-        # set the initial state of the PRNG
-        self.state = np.random.get_state()
-        
         # create the emcee sampler, let it burn in and erase burn in
         self.sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.kriging) 
         self.didBurnIn = False
-        
+            
         # tell samplers that they do not need to propagate the walkers
         self.walkerInd = 0
         
@@ -102,6 +103,8 @@ class Sampler(object):
         
         self.choose_point = self.min_var
 
+        self.pos = self.rand_position()
+                
     def rand_position(self):
 
         pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
@@ -116,17 +119,12 @@ class Sampler(object):
         we use twice the LL here
         '''
 
-        #print("Starting SAA sample")
-        # the initial set of positions
-        pos = np.random.rand(self.ndim * self.nwalkers) #choose U[0,1]
-        pos = ( 2*pos  - 1.0 )*self.specs.r # shift and stretch
-        pos = pos.reshape((self.nwalkers, self.ndim)) # reshape
-        
         # sample using the SSA LL which is twice the original LL
         sam = mc.EnsembleSampler(self.nwalkers, self.ndim, self.specs.ssaLL) 
-        pos, _ , self.state = sam.run_mcmc( pos, self.burn,self.state )
+        pos, _ , _  = sam.run_mcmc( pos0=self.rand_position(),
+                                    N=self.burn )
         sam.reset()
-        pos, _ , self.state = sam.run_mcmc( pos, nsteps,self.state )
+        pos, _ , _ = sam.run_mcmc( pos0=pos, N=nsteps )
 
         #print("Finished SAA sampler")
         return sam.flatchain
@@ -160,7 +158,7 @@ class Sampler(object):
             
        	
         bestPoint = bestPoint.reshape(self.ndim,)
-        # print bestPoint        
+        
         return bestPoint
                     
 
@@ -188,37 +186,11 @@ class Sampler(object):
         # update our burnin time to something more reasonable
         self.burn = 2*self.decorTime
     
-           
-    def run_mcmc(self, nsteps):
-        '''
-        run the emcee sampler for nsteps steps 
-        :param nsteps:
-            the number of steps we let the emcee sampler run
-        '''   
-
-        self.sam.run_mcmc( N=nsteps )
-        
-        # self.pos, self.prob, self.state, self.blobs = self.sam.run_mcmc( self.pos,
-        #                                                                  nsteps,
-        #                                                                  self.state ) 
-        
-        # self.variances = np.ravel(np.asarray( self.blobs ))
-        # print("ran MCMC. shape of variances is " + str(self.variances.shape))
-        
-        # update the decorrelation time
-        dec = 2*np.max( self.sam.acor )
-        if nsteps > 10*dec:
-            self.decorTime = max(dec , 20 )
-        else:
-            self.decorTime =self.burn
-    
-    
     def sample_batch(self):
-        '''
-        sample a bunch\ a batch
-        return a new, unused batch of positions of the goodman
-        & weare walkers
-        * ``samples`` - numpy array of size (nwalkers , ndim)
+        '''sample a bunch\ a batch return a new, unused batch of positions of
+        the goodman & weare walkers * ``samples`` - numpy array of
+        size (nwalkers , ndim)
+
         '''
         
         if not self.didBurnIn:
@@ -227,7 +199,7 @@ class Sampler(object):
         if self.walkerInd != 0:
             
             # run the MCMC to get new batch 
-            self.run_mcmc(self.decorTime)
+            self.sam.run_mcmc(N=self.decorTime, pos0=self.pos)
         
         # create a copy of the positions, so nothing unexpected
         # happens if we parallelize
@@ -240,12 +212,12 @@ class Sampler(object):
      
         
     def sample_one(self):
-        '''
-        this method returns a single sample from the current posterior
-        since we have a bunch of walkers, we return one of those 
-        with every call to this method. if we have used them all 
-        (i.e if walkerInd == nwalkers) then we are forced to run 
-        emcee for some more time.
+        '''this method returns a single sample from the current posterior
+        since we have a bunch of walkers, we return one of those with
+        every call to this method. if we have used them all (i.e if
+        walkerInd == nwalkers) then we are forced to run emcee for
+        some more time.
+
         '''
         if not self.didBurnIn:
             self.burnIn()
@@ -254,7 +226,7 @@ class Sampler(object):
         if self.walkerInd == self.nwalkers:
             
             # run the MCMC 
-            self.run_mcmc(self.decorTime)
+            self.run_mcmc(N=self.decorTime, pos0=self.pos)
             
             # the walker we sample is the zeroth
             self.walkerInd = 0
@@ -282,18 +254,26 @@ class Sampler(object):
         calculate autocorrelation. Then reset.
 
         '''
-        self.sam.run_mcmc(N=self.burn,
-                          pos0=self.rand_position())
+        self.sam.run_mcmc(N=self.burn, pos0=self.pos)
+        self.didBurnIn = True 
+        self.walkerInd = 0
+                 
         while True:
             try:
                 self.acor = self.sam.acor
                 break
             except mc.autocorr.AutocorrError:
                 self.burn = 2*self.burn
-                self.sam.run_mcmc(N=self.burn,
-                                  pos0=None)
+                if self.burn > 1500:
+                    self.burn = 1500
+                    self.pos, _ , _ = self.sam.run_mcmc(N=self.burn, pos0=None)
+                    self.acor = 300
+                    print "Burn in too long, set to 1500. Autocorrelation time set to 300."
+                    break
+            self.sam.run_mcmc(N=self.burn, pos0=None)
+        print "Updated burn in time == " + str(self.burn)
+        
 
-                print "Updated burn in time == " + str(self.burn)
-        self.didBurnIn = True 
-        self.walkerInd = 0
-         
+        ## Get decorrelation time
+        self.dec = 2*np.max( self.acor )
+

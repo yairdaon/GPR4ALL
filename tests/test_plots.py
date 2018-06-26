@@ -16,7 +16,7 @@ import gpr4all.container as cot
 import gpr4all.truth as truth
 import gpr4all.sampler as smp
 
-def testKriging(self):
+def testKriging():
     '''create a plot that shows kriging
 
     '''
@@ -95,7 +95,7 @@ def testKriging(self):
     plt.savefig("graphics/testKriging: Kriged LL")
     plt.close()
     
-def testLikelihood(self):
+def testLikelihood():
     '''test and plot kriging with and show the resulting (unnormalized)
         likelihood function. Here we let our sampler choose points on
         its own.

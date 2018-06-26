@@ -9,7 +9,7 @@ import math
 import gpr4all.kl as kl
 
 
-def testKL1D(self):
+def testKL1D():
     '''
     check we can calculate KL div for two gaussians
     '''
@@ -30,22 +30,22 @@ def testKL1D(self):
     psi   = lambda x: -math.log(tau) -(x-nu)*(x-nu)/(2*tau2) + Zquo # log likelihood
  
     # samles from first gaussian
-    phiSamples = np.random.normal(loc = mu, scale = sigma, size=1000000)
+    phiSamples = np.random.normal(loc = mu, scale = sigma, size=10**7)
     
     # our procedure for calculating KL divergence
     klDiv  = kl.get_KL(phi, psi, phiSamples)
         
     # analytic KL div, from wikipedia
     trueKL = ((mu - nu)**2)/(2*tau2) + (sig2/tau2 - 1.0 -math.log(sig2/tau2))/2.0
-    assert np.allclose(klDiv[0], trueKL)
+    assert abs(klDiv[0] - trueKL)/trueKL < 1e-3
         
     # compare normalization constants
     trueZpsiOverZphi = math.exp(Zquo)
-    assert np.allclose(trueZpsiOverZphi, math.exp(klDiv[6]))
+    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi ) < 1e-3
 
          
         
-def testKL2D(self):
+def testKL2D():
     '''check we can calculate KL div for two gaussians
 
     '''
@@ -70,7 +70,7 @@ def testKL2D(self):
     psi    = lambda x: -0.5*math.log(detTau) -0.5* np.einsum( 'i, ij ,j ' , x-nu, tauInv, x-nu ) + Zquo # log-likelihood
  
     # samles from first gaussian
-    phiSamples = np.random.multivariate_normal(mu, sigma, size=50000000)
+    phiSamples = np.random.multivariate_normal(mu, sigma, size=10**8)
     
     # our procedure for calculating KL divergence
     klDiv  = kl.get_KL(phi, psi, phiSamples)
@@ -80,9 +80,8 @@ def testKL2D(self):
               np.einsum( 'i, ij ,j ' , nu-mu, tauInv, nu-mu ) -
               2  -math.log(detSig/detTau) )/2.0
  
-    assert np.allclose( klDiv[0], truth )
+    assert abs( (truth-klDiv[0]) / truth ) < 1e-3
         
     # compare normalization constants
     trueZpsiOverZphi = math.exp(Zquo)
-    assert np.allclose( trueZpsiOverZphi, math.exp(klDiv[6]) )
-       
+    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi )  < 1e-3

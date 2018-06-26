@@ -14,7 +14,7 @@
 *.aux
 *.backup
 oldg*.*
-
+*pytest_cache*
 
 #directories to be ignored
 /**/graphics/

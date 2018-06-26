@@ -248,3 +248,25 @@ def testGradientSigSqr():
     assert np.allclose( analytic, numeric)         
                         
     
+
+
+def testSampler():
+    '''Here we sample from the sampler. We choose to learn from
+    the samples.
+
+    '''
+                        
+    # creating the container object...
+    specs = cot.Container( rose.rosenbrock_2D )
+    
+    specs.add_point( np.array( [ -1.5 , 2.0  ] )  )
+    specs.add_point( np.array( [  1.5 ,-2.0  ] )  )
+
+    sampler = smp.Sampler( specs, nwalkers = 20 )
+    sampler.learn()
+    specs = specs
+    sampler = sampler                                                 
+    
+    assert len( specs.X ) == 3
+    assert len(specs.X[0]) == len(specs.X[1])              
+    assert len(specs.X[0]) == len(specs.X[2])    
