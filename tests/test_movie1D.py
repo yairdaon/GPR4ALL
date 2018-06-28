@@ -6,8 +6,6 @@ Feel free to write to me about my code!
 '''
 import unittest
 import numpy as np
-import matplotlib
-matplotlib.use('Agg') ## So I don't need to install python-tk
 import matplotlib.pyplot as plt
 import os
 
@@ -93,7 +91,7 @@ def testMovie1D():
         plt.axis([xMin, xMax, yMin, yMax])
         plt.title( 'Kriged Log-Likelihood Changes in Time. r = ' + str(specs.r) )
             
-        textString = 'using  ' + str(frame) + ' sampled points' 
+        textString = 'using  ' + str(len(specs.X)) + ' sampled points' 
         plt.text(1.0, 1.0, textString)
         plt.legend(loc=1,prop={'size':7})  
             
@@ -113,9 +111,9 @@ def testMovie1D():
 # after the test was run, create the movie. you need 
 # ffmpeg to create the movie from the frames python saves 
 
-# delete previous movie
-os.system("rm -f graphics/Movie1D.mpg")    
+# # delete previous movie
+# os.system("rm -f graphics/Movie1D.mpg")    
         
-# create new movie 
-os.system("ffmpeg -i Data/Movie1DFrames/Frame%d.png graphics/Movie1D.mpg") 
+# # create new movie 
+# os.system("ffmpeg -i Data/Movie1DFrames/Frame%d.png graphics/Movie1D.mpg") 
         

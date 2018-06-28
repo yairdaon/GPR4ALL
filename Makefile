@@ -3,14 +3,15 @@ gpr4all/C/_aux.c gpr4all/C/_krigger.c gpr4all/C/krigger.c
 
 SO_FILES = gpr4all/_g.so gpr4all/_aux.so gpr4all/_krigger.so
 
-saa: $(SO_FILES)
-	python2.7 gpr4all/Test_saa.py
-movie: $(SO_FILES)
-	python tests/Test_Movie1D.py
-movie2:$(SO_FILES)
-	python2.7 tests/Test_Movie2D.py
+.PHONY: tests
+tests: $(SO_FILES)
+	pytest -s tests/test_c_code.py tests/test_no_graphics.py tests/test_gaussian.py tests/test_plots.py
+	pytest -s tests/test_movie1D.py tests/test_movie2D tests/test_kl.py tests/test_rosenbrock.py
 
-# creating the SO files
+main: $(SO_FILES)
+	pytest -s tests/test_movie1D.py tests/test_gaussian.py
+
+# creating the Shared Object (SO) files
 gpr4all/_aux.so: $(C_FILES)
 	python2.7 gpr4all/C/setup_aux.py build_ext --inplace
 	rm -rvf build
@@ -42,10 +43,6 @@ clean:
 	rm -rvf gpr4all/*~ *~ tex/*.pdf tex/*.out tex/*~ tex/*.backup tex/*.log tex/*.aux
 	clear
 
-# push git repository
-push:
-	git push https://github.com/yairdaon/GPR4ALL
-
 gpr4all/%.so: $(C_FILES)
 	make build
 
@@ -57,3 +54,4 @@ tex/calcs.pdf: tex/calcs.tex
 	pdflatex tex/calcs.tex
 	rm -vf tex/*.aux tex/*.log tex/*.out calcs.log calcs.aux
 	mv calcs.pdf tex
+

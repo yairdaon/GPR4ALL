@@ -41,17 +41,17 @@ def testRosenbrockSampler():
     nsteps = burn*10000
     indSamp = 1000000
            
-    # # the initial set of positions
-    # pos = np.random.rand(2 * nwalkers) #choose U[0,1]
-    # pos = ( 2*pos  - 1.0 ) # shift and stretch
-    # pos = pos.reshape((nwalkers, 2)) # reshape
+    # the initial set of positions
+    pos = np.random.rand(2 * nwalkers) #choose U[0,1]
+    pos = ( 2*pos  - 1.0 ) # shift and stretch
+    pos = pos.reshape((nwalkers, 2)) # reshape
            
            
     # create the emcee sampler and let it burn in
     sam = mc.EnsembleSampler(nwalkers, 2, rose.rosenbrock_2D)
            
     # burn in and then run the sampler
-    pos , _ , _  = sam.run_mcmc(pos, burn)
+    pos , _ , _  = sam.run_mcmc(pos0=pos, N=burn)
     sam.reset()
     sam.run_mcmc(pos, nsteps)
     

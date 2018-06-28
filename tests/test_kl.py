@@ -30,18 +30,18 @@ def testKL1D():
     psi   = lambda x: -math.log(tau) -(x-nu)*(x-nu)/(2*tau2) + Zquo # log likelihood
  
     # samles from first gaussian
-    phiSamples = np.random.normal(loc = mu, scale = sigma, size=10**7)
+    phiSamples = np.random.normal(loc = mu, scale = sigma, size=5*10**6)
     
     # our procedure for calculating KL divergence
     klDiv  = kl.get_KL(phi, psi, phiSamples)
         
     # analytic KL div, from wikipedia
     trueKL = ((mu - nu)**2)/(2*tau2) + (sig2/tau2 - 1.0 -math.log(sig2/tau2))/2.0
-    assert abs(klDiv[0] - trueKL)/trueKL < 1e-3
+    assert abs(klDiv[0] - trueKL)/trueKL < 1e-2
         
     # compare normalization constants
     trueZpsiOverZphi = math.exp(Zquo)
-    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi ) < 1e-3
+    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi ) < 1e-2
 
          
         
@@ -70,18 +70,18 @@ def testKL2D():
     psi    = lambda x: -0.5*math.log(detTau) -0.5* np.einsum( 'i, ij ,j ' , x-nu, tauInv, x-nu ) + Zquo # log-likelihood
  
     # samles from first gaussian
-    phiSamples = np.random.multivariate_normal(mu, sigma, size=10**8)
+    phiSamples = np.random.multivariate_normal(mu, sigma, size=10**7)
     
     # our procedure for calculating KL divergence
     klDiv  = kl.get_KL(phi, psi, phiSamples)
     
-    # analytic KL div, from wikipedia
+    # Closed form KL div, from wikipedia
     truth = ( np.trace( np.dot(tauInv , sigma)) + 
               np.einsum( 'i, ij ,j ' , nu-mu, tauInv, nu-mu ) -
               2  -math.log(detSig/detTau) )/2.0
  
-    assert abs( (truth-klDiv[0]) / truth ) < 1e-3
+    assert abs( (truth-klDiv[0]) / truth ) < 1e-2
         
     # compare normalization constants
     trueZpsiOverZphi = math.exp(Zquo)
-    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi )  < 1e-3
+    assert abs( (trueZpsiOverZphi-math.exp(klDiv[6])) / trueZpsiOverZphi )  < 1e-2
